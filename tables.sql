@@ -221,6 +221,13 @@ BEGIN
     END IF;
 
     IF NOT EXISTS(SELECT 1 FROM users WHERE id = _userId) THEN
+
+        IF EXISTS(SELECT 1 FROM users WHERE email = _email) THEN
+        RETURN QUERY
+            SELECT NULL::INTEGER, false, 'Email already exists', NULL::TEXT;
+        RETURN;
+        END IF;
+
         INSERT INTO users (name,email,role_id,created_dt,reporter_id)
         VALUES (_name,_email,_role,now(),_reporterId) RETURNING id INTO _userId;
 
@@ -343,6 +350,13 @@ BEGIN
     END IF;
 
     IF NOT EXISTS(SELECT 1 FROM users WHERE id = _userId) THEN
+
+        IF EXISTS(SELECT 1 FROM users WHERE email = _email) THEN
+        RETURN QUERY
+            SELECT NULL::INTEGER, false, 'Email already exists', NULL::TEXT;
+        RETURN;
+        END IF;
+
         INSERT INTO users (name,email,role_id,created_dt,reporter_id)
         VALUES (_name,_email,_roleId,now(),_reporterId) RETURNING id INTO _userId;
 
