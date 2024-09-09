@@ -35,7 +35,13 @@ VALUES
 (25, 'Edit Notice', 'notics/edit/id', NULL, NULL, NULL, 'screen'),
 (26, 'View Staffs', 'staffs/id', NULL, NULL, NULL, 'screen'),
 (27, 'Edit Staff', 'staffs/edit/id', NULL, NULL, NULL, 'screen'),
-(28, 'Manage Notices', 'notices/manage', NULL, 12, 3, 'menu')
+(28, 'Manage Notices', 'notices/manage', NULL, 12, 3, 'menu'),
+(29, 'Sections', 'sections', NULL, 6, 3, 'menu'),
+(30, 'Section Edit', 'sections/edit/id', NULL, NULL, NULL, 'screen'),
+(31, 'Departments', 'departments', NULL, 15, 3, 'menu'),
+(32, 'Edit Department', 'departments/edit/id', NULL, NULL, NULL, 'screen'),
+(33, 'Notice Recipients', 'notices/recipients', NULL, 12, 3, 'menu'),
+(34, 'Edit Recipient', 'notices/recipients/edit/id', NULL, NULL, NULL, 'screen')
 ON CONFLICT DO NOTHING;
 
 ALTER SEQUENCE leave_status_id_seq RESTART WITH 1;
@@ -47,11 +53,6 @@ INSERT INTO leave_status (name) VALUES
 ALTER SEQUENCE roles_id_seq RESTART WITH 1;
 INSERT INTO roles (name, is_editable)
 VALUES ('Admin', false), ('Teacher', false), ('Student', false);
-
-INSERT INTO notice_recipient_types (role_id, primary_dependent_name, primary_dependent_select)
-VALUES
-(2, 'Departments', 'select * from departments'),
-(3, 'Class', 'select * from classes');
 
 ALTER SEQUENCE notice_status_id_seq RESTART WITH 1;
 INSERT INTO notice_status (name, alias)
@@ -92,14 +93,8 @@ VALUES
 (1 , 17, 'menu'),
 (1 , 18, 'menu'),
 (1 , 19, 'menu'),
-(1 , 28, 'menu')
+(1 , 28, 'menu'),
+(1 , 29, 'menu'),
+(1 , 31, 'menu'),
+(1 , 33, 'menu')
 ON CONFLICT DO NOTHING;
-
-INSERT INTO sections(name)
-VALUES ('A'),('B'),('C'),('D');
-
-INSERT INTO classes (name, sections)
-VALUES('1','A'),('2','A'),('3','A'),('4','A'),('5','A');
-
-INSERT INTO Departments (name)
-VALUES('English'), ('Nepali'), ('Mathematics');
