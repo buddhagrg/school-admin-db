@@ -77,9 +77,11 @@ CREATE TABLE access_controls(
     name VARCHAR(100) NOT NULL,
     path VARCHAR(100) NOT NULL,
     icon VARCHAR(100) DEFAULT NULL,
-    parent_id INTEGER REFERENCES access_controls(id),
+    parent_path VARCHAR(100),
     hierarchy_id INTEGER DEFAULT NULL,
-    type VARCHAR(50) DEFAULT NULL
+    type VARCHAR(50) DEFAULT NULL,
+    method VARCHAR(10) DEFAULT NULL,
+    UNIQUE(path, method)
 );
 
 CREATE TABLE leave_status(
