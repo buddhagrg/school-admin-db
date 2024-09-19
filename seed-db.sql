@@ -8,6 +8,7 @@ INSERT INTO access_controls(
     method
 )
 VALUES
+('Get my account detail', 'account', NULL, NULL, NULL, 'screen', NULL),
 ('Get permissions', '/api/v1/permissions', NULL, NULL, NULL, 'api', 'GET'),
 ('Get teachers', '/api/v1/teachers', NULL, NULL, NULL, 'api', 'GET'),
 
