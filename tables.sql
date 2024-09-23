@@ -75,9 +75,9 @@ CREATE TABLE user_profiles(
 CREATE TABLE access_controls(
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    path VARCHAR(100) NOT NULL,
+    path VARCHAR(100) DEFAULT NULL,
     icon VARCHAR(100) DEFAULT NULL,
-    parent_path VARCHAR(100),
+    parent_path VARCHAR(100) DEFAULT NULL,
     hierarchy_id INTEGER DEFAULT NULL,
     type VARCHAR(50) DEFAULT NULL,
     method VARCHAR(10) DEFAULT NULL,
