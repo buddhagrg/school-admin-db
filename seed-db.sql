@@ -90,7 +90,7 @@ VALUES
 ('Manage Notices', 'notices/manage', NULL, 'communication_parent', 3, 'menu-screen', NULL),
 ('Notice Recipients', 'notices/recipients', NULL, 'communication_parent', 4, 'menu-screen', NULL),
 ('View Notice', 'notices/:id', NULL, 'communication_parent', NULL, 'screen', NULL),
-('Edit Notice', 'notics/edit/:id', NULL, 'communication_parent', NULL, 'screen', NULL),
+('Edit Notice', 'notices/edit/:id', NULL, 'communication_parent', NULL, 'screen', NULL),
 ('Edit Recipient', 'notices/recipients/edit/:id', NULL, 'communication_parent', NULL, 'screen', NULL),
 ('Get notice recipient list', '/api/v1/notices/recipients/list', NULL, 'communication_parent', NULL, 'api', 'GET'),
 ('Get notice recipients', '/api/v1/notices/recipients', NULL, 'communication_parent', NULL, 'api', 'GET'),
@@ -160,7 +160,7 @@ VALUES ('Draft', 'Draft'),
 ('Delete', 'Deleted');
 
 INSERT INTO users(name,email,role_id,created_dt,password, is_active, is_email_verified)
-VALUES('John Doe','admin@gmail.com',1, now(),'$argon2id$v=19$m=65536,t=3,p=4$qGMKQSrLeRX3pDDQguzkMg$UKZgR5BaB6RNCzvtlOU8jX/W7gItTifTBbR7Y1U6HLI', true, true)
+VALUES('John Doe','admin@school-admin.com',1, now(),'$argon2id$v=19$m=65536,t=3,p=4$21a+bDbESEI60WO1wRKnvQ$i6OrxqNiHvwtf1Xg3bfU5+AXZG14fegW3p+RSMvq1oU', true, true)
 RETURNING id;
 
 INSERT INTO user_profiles
