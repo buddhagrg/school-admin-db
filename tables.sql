@@ -53,10 +53,19 @@ CREATE TABLE user_profiles(
     experience VARCHAR(100) DEFAULT NULL,
     dob DATE DEFAULT NULL,
     phone VARCHAR(20) DEFAULT NULL,
-    class_name VARCHAR(50) REFERENCES classes(name) DEFAULT NULL,
-    section_name VARCHAR(50) REFERENCES sections(name) DEFAULT NULL,
+    class_name VARCHAR(50) REFERENCES classes(name)
+        ON UPDATE CASCADE
+        ON DELETE SET NULL
+        DEFAULT NULL,
+    section_name VARCHAR(50) REFERENCES sections(name)
+        ON UPDATE CASCADE
+        ON DELETE SET NULL
+        DEFAULT NULL,
     roll INTEGER DEFAULT NULL,
-    department_id INTEGER REFERENCES departments(id) DEFAULT NULL,
+    department_id INTEGER REFERENCES departments(id)
+        ON UPDATE CASCADE
+        ON DELETE SET NULL
+        DEFAULT NULL,
     admission_dt DATE DEFAULT NULL,
     father_name VARCHAR(50) DEFAULT NULL,
     father_phone VARCHAR(20) DEFAULT NULL,
@@ -106,8 +115,12 @@ CREATE TABLE user_leaves(
 CREATE TABLE class_teachers(
     id SERIAL PRIMARY KEY,
     teacher_id INTEGER REFERENCES users(id),
-    class_name VARCHAR(50) REFERENCES classes(name),
+    class_name VARCHAR(50) REFERENCES classes(name)
+        ON UPDATE CASCADE
+        ON DELETE SET NULL,
     section_name VARCHAR(30) REFERENCES sections(name)
+        ON UPDATE CASCADE
+        ON DELETE SET NULL
 );
 
 CREATE TABLE notice_status(
