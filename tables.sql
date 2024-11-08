@@ -1,47 +1,76 @@
+CREATE TABLE schools (
+    id SERIAL PRIMARY KEY,
+    school_id INTEGER UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    phone VARCHAR(30) DEFAULT NULL UNIQUE,
+    logo_url VARCHAR(250) DEFAULT NULL,
+    created_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_dt TIMESTAMP DEFAULT NULL,
+    is_active BOOLEAN DEFAULT false,
+    is_email_verified BOOLEAN DEFAULT false
+);
+
 CREATE TABLE classes(
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) UNIQUE,
-    sections VARCHAR(50)
+    name VARCHAR(50),
+    sections VARCHAR(50),
+    school_id INTEGER REFERENCES schools(school_id) NOT NULL,
+    UNIQUE(name, school_id)
 );
 
 CREATE TABLE departments(
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE
+    name VARCHAR(50) NOT NULL,
+    school_id INTEGER REFERENCES schools(school_id) NOT NULL,
+    UNIQUE(name, school_id)
 );
 
 CREATE TABLE sections(
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE
+    name VARCHAR(50) NOT NULL,
+    school_id INTEGER REFERENCES schools(school_id) NOT NULL,
+    UNIQUE(name, school_id)
 );
 
 CREATE TABLE leave_policies(
     id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
-    is_active BOOLEAN DEFAULT true
+    is_active BOOLEAN DEFAULT true,
+    school_id INTEGER REFERENCES schools(school_id) NOT NULL,
+    UNIQUE(name, school_id)
 );
 
 CREATE TABLE roles(
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) UNIQUE,
+    static_role_id INTEGER NOT NULL,
+    name VARCHAR(50) NOT NULL,
     is_active BOOLEAN DEFAULT true,
-    is_editable BOOLEAN DEFAULT true
+    is_editable BOOLEAN DEFAULT true,
+    school_id INTEGER REFERENCES schools(school_id) NOT NULL,
+    UNIQUE(static_role_id, name, school_id)
 );
 
 CREATE TABLE users(
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL,
     password VARCHAR(255) DEFAULT NULL,
     last_login TIMESTAMP DEFAULT NULL,
-    role_id INTEGER REFERENCES roles(id),
+    role_id INTEGER NOT NULL,
     created_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_dt TIMESTAMP DEFAULT NULL,
     leave_policy_id INTEGER REFERENCES leave_policies(id) DEFAULT NULL,
     is_active BOOLEAN DEFAULT false,
     reporter_id INTEGER DEFAULT NULL,
     status_last_reviewed_dt TIMESTAMP DEFAULT NULL,
-    status_last_reviewer_id INTEGER REFERENCES users(id) DEFAULT NULL,
-    is_email_verified BOOLEAN DEFAULT false
+    status_last_reviewer_id INTEGER REFERENCES users(id)
+        ON UPDATE SET NULL
+        DEFAULT NULL,
+    is_email_verified BOOLEAN DEFAULT false,
+    profile_url VARCHAR(250) DEFAULT NULL,
+    school_id INTEGER REFERENCES schools(school_id) NOT NULL,
+    UNIQUE(email, school_id)
 );
 
 CREATE TABLE user_profiles(
@@ -53,19 +82,10 @@ CREATE TABLE user_profiles(
     experience VARCHAR(100) DEFAULT NULL,
     dob DATE DEFAULT NULL,
     phone VARCHAR(20) DEFAULT NULL,
-    class_name VARCHAR(50) REFERENCES classes(name)
-        ON UPDATE CASCADE
-        ON DELETE SET NULL
-        DEFAULT NULL,
-    section_name VARCHAR(50) REFERENCES sections(name)
-        ON UPDATE CASCADE
-        ON DELETE SET NULL
-        DEFAULT NULL,
+    class_name VARCHAR(50) DEFAULT NULL,
+    section_name VARCHAR(50) DEFAULT NULL,
     roll INTEGER DEFAULT NULL,
-    department_id INTEGER REFERENCES departments(id)
-        ON UPDATE CASCADE
-        ON DELETE SET NULL
-        DEFAULT NULL,
+    department_id INTEGER REFERENCES departments(id) DEFAULT NULL,
     admission_dt DATE DEFAULT NULL,
     father_name VARCHAR(50) DEFAULT NULL,
     father_phone VARCHAR(20) DEFAULT NULL,
@@ -78,7 +98,9 @@ CREATE TABLE user_profiles(
     current_address VARCHAR(50) DEFAULT NULL,
     permanent_address VARCHAR(50) DEFAULT NULL,
     created_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_dt TIMESTAMP DEFAULT NULL
+    updated_dt TIMESTAMP DEFAULT NULL,
+    school_id INTEGER REFERENCES schools(school_id) NOT NULL,
+    UNIQUE(user_id, school_id)
 );
 
 CREATE TABLE access_controls(
@@ -90,6 +112,7 @@ CREATE TABLE access_controls(
     hierarchy_id INTEGER DEFAULT NULL,
     type VARCHAR(50) DEFAULT NULL,
     method VARCHAR(10) DEFAULT NULL,
+    is_allowed_for_super_admin boolean DEFAULT false,
     UNIQUE(path, method)
 );
 
@@ -109,24 +132,23 @@ CREATE TABLE user_leaves(
     updated_dt TIMESTAMP DEFAULT NULL,
     approved_dt TIMESTAMP DEFAULT NULL,
     approver_id INTEGER REFERENCES users(id),
-    status INTEGER REFERENCES leave_status(id)
+    status INTEGER REFERENCES leave_status(id),
+    school_id INTEGER REFERENCES schools(school_id) NOT NULL
 );
 
 CREATE TABLE class_teachers(
     id SERIAL PRIMARY KEY,
     teacher_id INTEGER REFERENCES users(id),
-    class_name VARCHAR(50) REFERENCES classes(name)
-        ON UPDATE CASCADE
-        ON DELETE SET NULL,
-    section_name VARCHAR(30) REFERENCES sections(name)
-        ON UPDATE CASCADE
-        ON DELETE SET NULL
+    class_name VARCHAR(50) DEFAULT NULL,
+    section_name VARCHAR(30) DEFAULT NULL,
+    school_id INTEGER REFERENCES schools(school_id) NOT NULL
 );
 
 CREATE TABLE notice_status(
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE,
-    alias VARCHAR(50) NOT NULL UNIQUE
+    name VARCHAR(50) NOT NULL,
+    alias VARCHAR(50) NOT NULL,
+    UNIQUE(name, alias)
 );
 
 CREATE TABLE notices(
@@ -141,7 +163,8 @@ CREATE TABLE notices(
     reviewer_id INTEGER REFERENCES users(id) DEFAULT NULL,
     recipient_type VARCHAR(20) NOT NULL,
     recipient_role_id INTEGER DEFAULT NULL,
-    recipient_first_field VARCHAR(20) DEFAULT NULL
+    recipient_first_field VARCHAR(20) DEFAULT NULL,
+    school_id INTEGER REFERENCES schools(school_id) NOT NULL
 );
 
 CREATE TABLE user_refresh_tokens (
@@ -149,29 +172,33 @@ CREATE TABLE user_refresh_tokens (
   token TEXT NOT NULL,
   user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
   issued_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  expires_at TIMESTAMPTZ NOT NULL
+  expires_at TIMESTAMPTZ NOT NULL,
+  school_id INTEGER REFERENCES schools(school_id) NOT NULL
 );
 
 CREATE TABLE permissions(
     id SERIAL PRIMARY KEY,
-    role_id INTEGER REFERENCES roles(id),
+    role_id INTEGER NOT NULL,
     access_control_id INTEGER REFERENCES access_controls(id),
     type VARCHAR(20) DEFAULT NULL,
-    UNIQUE(role_id, access_control_id)
+    school_id INTEGER REFERENCES schools(school_id) NOT NULL,
+    UNIQUE(role_id, access_control_id, school_id)
 );
 
 CREATE TABLE notice_recipient_types(
     id SERIAL PRIMARY KEY,
-    role_id INTEGER REFERENCES roles(id),
+    role_id INTEGER NOT NULL,
     primary_dependent_name VARCHAR(100) DEFAULT NULL,
-    primary_dependent_select VARCHAR(100) DEFAULT NULL
+    primary_dependent_select VARCHAR(100) DEFAULT NULL,
+    school_id INTEGER REFERENCES schools(school_id) NOT NULL
 );
 
 CREATE TABLE user_leave_policy (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) DEFAULT NULL,
     leave_policy_id INTEGER REFERENCES leave_policies(id) DEFAULT NULL,
-    UNIQUE (user_id, leave_policy_id)
+    school_id INTEGER REFERENCES schools(school_id) NOT NULL,
+    UNIQUE(user_id, leave_policy_id, school_id)
 );
 
 
@@ -187,7 +214,8 @@ DECLARE
 
     _userId INTEGER;
     _name TEXT;
-    _role INTEGER;
+    _roleId INTEGER;
+    _staticRoleId INTEGER;
     _gender TEXT;
     _maritalStatus TEXT;
     _phone TEXT;
@@ -203,10 +231,11 @@ DECLARE
     _emergencyPhone TEXT;
     _systemAccess BOOLEAN;
     _reporterId INTEGER;
+    _schoolId INTEGER;
 BEGIN
     _userId := COALESCE((data ->>'userId')::INTEGER, NULL);
     _name := COALESCE(data->>'name', NULL);
-    _role := COALESCE((data->>'role')::INTEGER, NULL);
+    _roleId := COALESCE((data->>'role')::INTEGER, NULL);
     _gender := COALESCE(data->>'gender', NULL);
     _maritalStatus := COALESCE(data->>'maritalStatus', NULL);
     _phone := COALESCE(data->>'phone', NULL);
@@ -222,6 +251,7 @@ BEGIN
     _emergencyPhone := COALESCE(data->>'emergencyPhone', NULL);
     _systemAccess := COALESCE((data->>'systemAccess')::BOOLEAN, NULL);
     _reporterId := COALESCE((data->>'reporterId')::INTEGER, NULL);
+    _schoolId := COALESCE((data->>'schoolId')::INTEGER, NULL);
 
     IF _userId IS NULL THEN
         _operationType := 'add';
@@ -229,7 +259,21 @@ BEGIN
         _operationType := 'update';
     END IF;
 
-    IF _role = 3 THEN
+    IF _schoolId IS NULL THEN
+        RETURN QUERY
+        SELECT NULL::INTEGER, false, 'School Id may not be empty', NULL::TEXT;
+        RETURN;
+    END IF;
+
+    IF _roleId IS NULL THEN
+        RETURN QUERY
+        SELECT NULL::INTEGER, false, 'Role may not be empty', NULL::TEXT;
+        RETURN;
+    END IF;
+
+    SELECT static_role_id FROM roles WHERE id = _roleId And school_id = _schoolId INTO _staticRoleId;
+    
+    IF _staticRoleId = 4 THEN
         RETURN QUERY
         SELECT NULL::INTEGER, false, 'Student cannot be staff', NULL::TEXT;
         RETURN;
@@ -243,13 +287,13 @@ BEGIN
         RETURN;
         END IF;
 
-        INSERT INTO users (name,email,role_id,created_dt,reporter_id)
-        VALUES (_name,_email,_role,now(),_reporterId) RETURNING id INTO _userId;
+        INSERT INTO users (name,email,role_id,created_dt,reporter_id, school_id)
+        VALUES (_name,_email,_roleId,now(),_reporterId,_schoolId) RETURNING id INTO _userId;
 
         INSERT INTO user_profiles
-        (user_id, gender, marital_status, phone,dob,join_dt,qualification,experience,current_address,permanent_address,father_name,mother_name,emergency_phone)
+        (user_id, gender, marital_status, phone,dob,join_dt,qualification,experience,current_address,permanent_address,father_name,mother_name,emergency_phone, school_id)
         VALUES
-        (_userId,_gender,_maritalStatus,_phone,_dob,_joinDate,_qualification,_experience,_currentAddress,_permanentAddress,_fatherName,_motherName,_emergencyPhone);
+        (_userId,_gender,_maritalStatus,_phone,_dob,_joinDate,_qualification,_experience,_currentAddress,_permanentAddress,_fatherName,_motherName,_emergencyPhone, _schoolId);
 
         RETURN QUERY
             SELECT _userId, true, 'Staff added successfully', NULL;
@@ -262,11 +306,11 @@ BEGIN
     SET
         name = _name,
         email = _email,
-        role_id = _role,
+        role_id = _roleId,
         is_active = _systemAccess,
         reporter_id = _reporterId,
         updated_dt = now()
-    WHERE id = _userId;
+    WHERE id = _userId AND school_id = _schoolId;
 
     UPDATE user_profiles
     SET
@@ -282,7 +326,7 @@ BEGIN
         father_name = _fatherName,
         mother_name = _motherName,
         emergency_phone = _emergencyPhone
-    WHERE user_id = _userId;
+    WHERE user_id = _userId AND school_id = _schoolId;
 
     RETURN QUERY
         SELECT _userId, true, 'Staff updated successfully', NULL;
@@ -326,8 +370,8 @@ DECLARE
     _sectionName TEXT;
     _admissionDt DATE;
     _roll INTEGER;
+    _schoolId INTEGER;
 BEGIN
-    _roleId = 3;
     _userId := COALESCE((data ->>'userId')::INTEGER, NULL);
     _name := COALESCE(data->>'name', NULL);
     _gender := COALESCE(data->>'gender', NULL);
@@ -348,6 +392,7 @@ BEGIN
     _sectionName := COALESCE(data->>'section', NULL);
     _admissionDt := COALESCE((data->>'admissionDate')::DATE, NULL);
     _roll := COALESCE((data->>'roll')::INTEGER, NULL);
+    _schoolId := COALESCE((data->>'schoolId')::INTEGER, NULL);
 
     IF _userId IS NULL THEN
         _operationType := 'add';
@@ -355,30 +400,43 @@ BEGIN
         _operationType := 'update';
     END IF;
 
+    IF _schoolId IS NULL THEN
+        RETURN QUERY
+        SELECT NULL::INTEGER, false, 'School Id may not be empty', NULL::TEXT;
+        RETURN;
+    END IF;
+
+    SELECT id FROM roles WHERE school_id = _schoolId AND static_role_id = 4 INTO _roleId;
+
     SELECT teacher_id
     FROM class_teachers
     WHERE class_name = _className AND section_name = _sectionName
     INTO _reporterId;
 
     IF _reporterId IS NULL THEN
-        SELECT id from users WHERE role_id = 1 ORDER BY id ASC LIMIT 1 INTO _reporterId;
+        SELECT t1.id
+        FROM users t1
+        JOIN roles t2 ON t2.id = t1.role_id
+        WHERE t2.static_role_id = 2 AND t2.school_id = _schoolId
+        ORDER BY id ASC
+        LIMIT 1
+        INTO _reporterId;
     END IF;
 
     IF NOT EXISTS(SELECT 1 FROM users WHERE id = _userId) THEN
-
         IF EXISTS(SELECT 1 FROM users WHERE email = _email) THEN
         RETURN QUERY
             SELECT NULL::INTEGER, false, 'Email already exists', NULL::TEXT;
         RETURN;
         END IF;
 
-        INSERT INTO users (name,email,role_id,created_dt,reporter_id)
-        VALUES (_name,_email,_roleId,now(),_reporterId) RETURNING id INTO _userId;
+        INSERT INTO users (name,email,role_id,created_dt,reporter_id, school_id)
+        VALUES (_name,_email,_roleId,now(),_reporterId, _schoolId) RETURNING id INTO _userId;
 
         INSERT INTO user_profiles
-        (user_id,gender,phone,dob,admission_dt,class_name,section_name,roll,current_address,permanent_address,father_name,father_phone,mother_name,mother_phone,guardian_name,guardian_phone,relation_of_guardian)
+        (user_id,gender,phone,dob,admission_dt,class_name,section_name,roll,current_address,permanent_address,father_name,father_phone,mother_name,mother_phone,guardian_name,guardian_phone,relation_of_guardian, school_id)
         VALUES
-        (_userId,_gender,_phone,_dob,_admissionDt,_className,_sectionName,_roll,_currentAddress,_permanentAddress,_fatherName,_fatherPhone,_motherName,_motherPhone,_guardianName,_guardianPhone,_relationOfGuardian);
+        (_userId,_gender,_phone,_dob,_admissionDt,_className,_sectionName,_roll,_currentAddress,_permanentAddress,_fatherName,_fatherPhone,_motherName,_motherPhone,_guardianName,_guardianPhone,_relationOfGuardian, _schoolId);
 
         RETURN QUERY
             SELECT _userId, true, 'Student added successfully', NULL;
@@ -394,7 +452,7 @@ BEGIN
         role_id = _roleId,
         is_active = _systemAccess,
         updated_dt = now()
-    WHERE id = _userId;
+    WHERE id = _userId AND school_id = _schoolId;
 
     UPDATE user_profiles
     SET
@@ -414,7 +472,7 @@ BEGIN
         guardian_name = _guardianName,
         guardian_phone = _guardianPhone,
         relation_of_guardian = _relationOfGuardian
-    WHERE user_id = _userId;
+    WHERE user_id = _userId AND school_id = _schoolId;
 
     RETURN QUERY
         SELECT _userId, true , 'Student updated successfully', NULL;
@@ -434,6 +492,7 @@ AS $BODY$
 
 DECLARE
     _user_role_id INTEGER;
+    _user_school_id INTEGER;
 
     _student_count_current_year INTEGER;
     _student_count_previous_year INTEGER;
@@ -461,23 +520,38 @@ BEGIN
         RAISE EXCEPTION 'User does not exist';
     END IF;
 
-    SELECT role_id FROM users u WHERE u.id = _user_id into _user_role_id;
+    SELECT
+    t2.static_role_id
+    FROM users t1
+    JOIN roles t2 ON t2.id = t1.role_id
+    WHERE t1.id = _user_id
+    INTO _user_role_id;
+
     IF _user_role_id IS NULL THEN
         RAISE EXCEPTION 'Role does not exist';
+    END IF;
+
+    SELECT school_id FROM users u WHERE u.id = _user_id into _user_school_id;
+    IF _user_school_id IS NULL THEN
+        RAISE EXCEPTION 'School does not exist';
     END IF;
 
     --student
     IF _user_role_id = 1 THEN
         SELECT COUNT(*) INTO _student_count_current_year
         FROM users t1
+        JOIN roles t2 ON t2.id = t1.role_id
         JOIN user_profiles t2 ON t1.id = t2.user_id
-        WHERE t1.role_id = 3
+        WHERE t2.static_role_id = 4
+        AND t1.school_id = _user_school_id
         AND EXTRACT(YEAR FROM t2.admission_dt) = EXTRACT(YEAR FROM CURRENT_DATE);
 
         SELECT COUNT(*) INTO _student_count_previous_year
         FROM users t1
         JOIN user_profiles t2 ON t1.id = t2.user_id
-        WHERE t1.role_id = 3
+        JOIN roles t3 ON t3.id = t1.role_id
+        WHERE t3.static_role_id = 4
+        AND t1.school_id = _user_school_id
         AND EXTRACT(YEAR FROM t2.admission_dt) = EXTRACT(YEAR FROM CURRENT_DATE) - 1;
 
         _student_value_comparison := _student_count_current_year - _student_count_previous_year;
@@ -491,13 +565,17 @@ BEGIN
         SELECT COUNT(*) INTO _teacher_count_current_year
         FROM users t1
         JOIN user_profiles t2 ON t1.id = t2.user_id
-        WHERE t1.role_id = 2
+        JOIN roles t3 ON t3.id = t1.role_id
+        WHERE t3.static_role_id = 3
+        AND t1.school_id = _user_school_id
         AND EXTRACT(YEAR FROM t2.join_dt) = EXTRACT(YEAR FROM CURRENT_DATE);
 
         SELECT COUNT(*) INTO _teacher_count_previous_year
         FROM users t1
         JOIN user_profiles t2 ON t1.id = t2.user_id
-        WHERE t1.role_id = 2
+        JOIN roles t3 ON t3.id = t1.role_id
+        WHERE t3.static_role_id = 3
+        AND t1.school_id = _user_school_id
         AND EXTRACT(YEAR FROM t2.join_dt) = EXTRACT(YEAR FROM CURRENT_DATE) - 1;
 
         _teacher_value_comparison := _teacher_count_current_year - _teacher_count_previous_year;
@@ -511,13 +589,17 @@ BEGIN
         SELECT COUNT(*) INTO _parent_count_current_year
         FROM users t1
         JOIN user_profiles t2 ON t1.id = t2.user_id
-        WHERE t1.role_id = 4
+        JOIN roles t3 ON t3.id = t1.role_id
+        WHERE t3.static_role_id = 5
+        AND t1.school_id = _user_school_id
         AND EXTRACT(YEAR FROM t2.join_dt) = EXTRACT(YEAR FROM CURRENT_DATE);
 
         SELECT COUNT(*) INTO _parent_count_previous_year
         FROM users t1
         JOIN user_profiles t2 ON t1.id = t2.user_id
-        WHERE t1.role_id = 4
+        JOIN roles t3 ON t3.id = t1.role_id
+        WHERE t3.static_role_id = 5
+        AND t1.school_id = _user_school_id
         AND EXTRACT(YEAR FROM t2.join_dt) = EXTRACT(YEAR FROM CURRENT_DATE) - 1;
 
         _parent_value_comparison := _parent_count_current_year - _parent_count_previous_year;
@@ -565,7 +647,7 @@ BEGIN
         FROM user_leave_policy t1
         JOIN leave_policies t2 ON t1.leave_policy_id = t2.id
         LEFT JOIN user_leaves t3 ON t1.leave_policy_id = t3.leave_policy_id
-        WHERE t1.user_id = _user_id
+        WHERE t1.user_id = _user_id AND t1.school_id = _user_school_id
         GROUP BY t2.id, t2.name
     )
     SELECT
@@ -596,11 +678,12 @@ BEGIN
         LEFT JOIN users t4 ON t1.approver_id = t4.id
         JOIN users t5 ON t1.user_id = t5.id
         WHERE (
-            _user_role_id = 1
-            And 1=1
+            _user_role_id = 2
+            And t1.school_id = _user_school_id
         ) OR (
-            _user_role_id != 1
+            _user_role_id != 2
             AND t1.user_id = _user_id
+            And t1.school_id = _user_school_id
         )
         ORDER BY submitted_dt DESC
         LIMIT 5
@@ -621,6 +704,7 @@ BEGIN
         FROM users t1
         JOIN user_profiles t2 ON t1.id = t2.user_id
         WHERE t2.dob IS NOT NULL
+        AND t1.school_id = _user_school_id
         AND (
             t2.dob + (EXTRACT(YEAR FROM age(now(), t2.dob)) + 1) * INTERVAL '1 year'
             BETWEEN now() AND now() + INTERVAL '90 days'
@@ -633,22 +717,24 @@ BEGIN
             t1.name AS user, 
             'Happy ' ||
                 CASE
-                    WHEN t1.role_id = 3 THEN
+                    WHEN t3.static_role_id = 4 THEN
                         EXTRACT(YEAR FROM age(now(), t2.admission_dt))
                     ELSE
                         EXTRACT(YEAR FROM age(now(), t2.join_dt))
                 END || ' Anniversary!' AS event, 
             CASE
-                WHEN t1.role_id = 3 THEN
+                WHEN t3.static_role_id = 4 THEN
                     t2.admission_dt
                 ELSE
                     t2.join_dt
             END AS "eventDate"
         FROM users t1
         JOIN user_profiles t2 ON t1.id = t2.user_id
+        JOIN roles t3 ON t3.id = t1.role_id
         WHERE 
         (
-            t1.role_id = 3 
+            t3.static_role_id = 4
+            AND t1.school_id = _user_school_id
             AND t2.admission_dt IS NOT NULL 
             AND age(now(), t2.admission_dt) >= INTERVAL '1 year'
             AND (
@@ -659,7 +745,8 @@ BEGIN
         )
         OR 
         (
-            t1.role_id != 3 
+            t3.static_role_id != 4
+            AND t1.school_id = _user_school_id
             AND t2.join_dt IS NOT NULL 
             AND age(now(), t2.join_dt) >= INTERVAL '1 year'
             AND (
@@ -699,6 +786,7 @@ BEGIN
             t2.from_dt <= t4.day_end
             AND t2.to_dt >= t4.day_start
         WHERE t2.status = 2
+        AND t1.school_id = _user_school_id
     )t;
 
     -- Build and return the final JSON object
@@ -748,14 +836,15 @@ LANGUAGE plpgsql
 AS $BODY$
 DECLARE
     _user_role_id INTEGER;
+    _user_school_id INTEGER;
 BEGIN    
     IF NOT EXISTS (SELECT 1 FROM users u WHERE u.id = _user_id) THEN
         RAISE EXCEPTION 'User does not exist';
     END IF;
 
-    SELECT role_id FROM users u WHERE u.id = _user_id INTO _user_role_id;
-    IF _user_role_id IS NULL THEN
-        RAISE EXCEPTION 'Role does not exist';
+    SELECT school_id FROM users u WHERE u.id = _user_id INTO _user_school_id;
+    IF _user_school_id IS NULL THEN
+        RAISE EXCEPTION 'School does not exist';
     END IF;
 
     RETURN QUERY
@@ -776,8 +865,10 @@ BEGIN
     LEFT JOIN users t2 ON t1.author_id = t2.id
     LEFT JOIN notice_status t3 ON t1.status = t3.id
     LEFT JOIN users t4 ON t1.reviewer_id = t4.id
+    JOIN roles t6 ON t6.id = t1.recipient_role_id  
     WHERE (
-        _user_role_id = 1
+        t6.static_role_id = 2
+        AND t1.school_id = _user_school_id
         AND (
             t1.author_id = _user_id
             OR (
@@ -787,7 +878,8 @@ BEGIN
         )
     )
     OR (
-        _user_role_id != 1
+        t6.static_role_id != 2
+        AND t1.school_id = _user_school_id
         AND (
             t1.status != 6
             AND (
@@ -800,8 +892,7 @@ BEGIN
                             t1.recipient_type = 'SP'
                             AND (
                                 (
-                                    t1.recipient_role_id = 2
-                                    AND _user_role_id = 2
+                                    t6.static_role_id = 3
                                     AND (
                                         t1.recipient_first_field IS NULL
                                         OR t1.recipient_first_field = ''
@@ -815,8 +906,7 @@ BEGIN
                                     )
                                 )
                                 OR (
-                                    t1.recipient_role_id = 3
-                                    AND _user_role_id = 3
+                                    t6.static_role_id = 4
                                     AND (
                                         t1.recipient_first_field IS NULL
                                         OR t1.recipient_first_field = ''

@@ -146,10 +146,6 @@ INSERT INTO leave_status (name) VALUES
 ('Approved'),
 ('Cancelled');
 
-ALTER SEQUENCE roles_id_seq RESTART WITH 1;
-INSERT INTO roles (name, is_editable)
-VALUES ('Admin', false), ('Teacher', false), ('Student', false);
-
 ALTER SEQUENCE notice_status_id_seq RESTART WITH 1;
 INSERT INTO notice_status (name, alias)
 VALUES ('Draft', 'Draft'),
@@ -158,12 +154,3 @@ VALUES ('Draft', 'Draft'),
 ('Reject', 'Rejected'),
 ('Approve', 'Approved'),
 ('Delete', 'Deleted');
-
-INSERT INTO users(name,email,role_id,created_dt,password, is_active, is_email_verified)
-VALUES('John Doe','admin@school-admin.com',1, now(),'$argon2id$v=19$m=65536,t=3,p=4$21a+bDbESEI60WO1wRKnvQ$i6OrxqNiHvwtf1Xg3bfU5+AXZG14fegW3p+RSMvq1oU', true, true)
-RETURNING id;
-
-INSERT INTO user_profiles
-(user_id, gender, marital_status, phone,dob,join_dt,qualification,experience,current_address,permanent_address,father_name,mother_name,emergency_phone)
-VALUES
-((SELECT currval('users_id_seq')),'Male','Married','4759746607','2024-08-05',NULL,NULL,NULL,NULL,NULL,'stut','lancy','79374304');
