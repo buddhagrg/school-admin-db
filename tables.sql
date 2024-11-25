@@ -5,6 +5,7 @@ CREATE TABLE schools (
     email VARCHAR(100) NOT NULL UNIQUE,
     phone VARCHAR(30) DEFAULT NULL UNIQUE,
     logo_url VARCHAR(250) DEFAULT NULL,
+    last_modified_by INTEGER DEFAULT NULL,
     created_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_dt TIMESTAMP DEFAULT NULL,
     is_active BOOLEAN DEFAULT false,
@@ -112,7 +113,7 @@ CREATE TABLE access_controls(
     hierarchy_id INTEGER DEFAULT NULL,
     type VARCHAR(50) DEFAULT NULL,
     method VARCHAR(10) DEFAULT NULL,
-    is_allowed_for_super_admin boolean DEFAULT false,
+    direct_allowed_role_id VARCHAR(5) DEFAULT NULL,
     UNIQUE(path, method)
 );
 
@@ -183,14 +184,6 @@ CREATE TABLE permissions(
     type VARCHAR(20) DEFAULT NULL,
     school_id INTEGER REFERENCES schools(school_id) NOT NULL,
     UNIQUE(role_id, access_control_id, school_id)
-);
-
-CREATE TABLE notice_recipient_types(
-    id SERIAL PRIMARY KEY,
-    role_id INTEGER NOT NULL,
-    primary_dependent_name VARCHAR(100) DEFAULT NULL,
-    primary_dependent_select VARCHAR(100) DEFAULT NULL,
-    school_id INTEGER REFERENCES schools(school_id) NOT NULL
 );
 
 CREATE TABLE user_leave_policy (
@@ -537,12 +530,12 @@ BEGIN
     END IF;
 
     --student
-    IF _user_role_id = 1 THEN
+    IF _user_role_id = 2 THEN
         SELECT COUNT(*) INTO _student_count_current_year
         FROM users t1
-        JOIN roles t2 ON t2.id = t1.role_id
         JOIN user_profiles t2 ON t1.id = t2.user_id
-        WHERE t2.static_role_id = 4
+        JOIN roles t3 ON t3.id = t1.role_id
+        WHERE t3.static_role_id = 4
         AND t1.school_id = _user_school_id
         AND EXTRACT(YEAR FROM t2.admission_dt) = EXTRACT(YEAR FROM CURRENT_DATE);
 
