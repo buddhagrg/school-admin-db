@@ -167,7 +167,7 @@ VALUES ('Draft', 'Draft'),
 
 -- system super admin
 INSERT INTO schools(name, email, school_id, is_active, is_email_verified)
-VALUES('SCHOOL ADMIN', 'school@school-admin.xyz', -1, true, true);
+VALUES('DEMO SCHOOL', 'demo-school@school-admin.xyz', -1, true, true);
 
 INSERT INTO roles(static_role_id, name, is_editable, school_id)
 VALUES(1, 'Super Admin', false, -1)
@@ -179,9 +179,9 @@ VALUES('Super Admin', 'super-admin@school-admin.xyz', (SELECT currval('roles_id_
 
 -- school admin
 INSERT INTO roles(static_role_id, name, is_editable, school_id)
-VALUES(2, 'SCHOOL ADMIN', false, -1)
+VALUES(2, 'admin', false, -1)
 RETURNING id;
 
 -- plain_pwd=iamadmin
 INSERT INTO users(name, email, role_id, school_id, is_active, is_email_verified, password)
-VALUES('Admin', 'admin@school-admin.xyz', (SELECT currval('roles_id_seq')), -1, true, true, '$argon2id$v=19$m=65536,t=3,p=4$mZxqMB+b+KHqSa8apH8lkA$nAh/hjqfhY5AmNSsczjwl7gOOysBCyBGQoio9nwaJ1U');
+VALUES('School Admin', 'admin@school-admin.xyz', (SELECT currval('roles_id_seq')), -1, true, true, '$argon2id$v=19$m=65536,t=3,p=4$mZxqMB+b+KHqSa8apH8lkA$nAh/hjqfhY5AmNSsczjwl7gOOysBCyBGQoio9nwaJ1U');
