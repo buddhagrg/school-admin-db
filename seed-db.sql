@@ -47,29 +47,34 @@ VALUES
 ('Handle leave request status', 'api/v1/leave/pending/:id/status', NULL, 'leave_parent', NULL, 'api', 'POST', '2'),
 -- end leave
 
---start academics
-('Academics', 'academics_parent', 'academics.svg', NULL, 3, 'menu-screen', NULL, '2'),
-('Classes', 'classes', NULL, 'academics_parent', 1, 'menu-screen', NULL, '2'),
-('Class Teachers', 'class-teachers', NULL, 'academics_parent', 2, 'menu-screen', NULL, '2'),
-('Sections', 'sections', NULL, 'academics_parent', 3, 'menu-screen', NULL, '2'),
-('Classes Edit', 'classes/edit/:id', NULL, 'academics_parent', NULL, 'screen', NULL, '2'),
-('Class Teachers Edit', 'class-teachers/edit/:id', NULL, 'academics_parent', NULL, 'screen', NULL, '2'),
-('Get all classes', 'api/v1/classes', NULL, 'academics_parent', NULL, 'api', 'GET', '2'),
-('Get class detail', 'api/v1/classes/:id', NULL, 'academics_parent', NULL, 'api', 'GET', '2'),
-('Add new class', 'api/v1/classes', NULL, 'academics_parent', NULL, 'api', 'POST', '2'),
-('Update class detail', 'api/v1/classes/:id', NULL, 'academics_parent', NULL, 'api', 'PUT', '2'),
-('Delete class', 'api/v1/classes/:id', NULL, 'academics_parent', NULL, 'api', 'DELETE', '2'),
-('Get class with teacher details', 'api/v1/class-teachers', NULL, 'academics_parent', NULL, 'api', 'GET', '2'),
-('Add class teacher', 'api/v1/class-teachers', NULL, 'academics_parent', NULL, 'api', 'POST', '2'),
-('Get class teacher detail', 'api/v1/class-teachers/:id', NULL, 'academics_parent', NULL, 'api', 'GET', '2'),
-('Update class teacher detail', 'api/v1/class-teachers/:id', NULL, 'academics_parent', NULL, 'api', 'PUT', '2'),
-('Section Edit', 'sections/edit/:id', NULL, 'academics_parent', NULL, 'screen', NULL, '2'),
-('Get all sections', 'api/v1/sections', NULL, 'academics_parent', NULL, 'api', 'GET', '2'),
-('Add new section', 'api/v1/sections', NULL, 'academics_parent', NULL, 'api', 'POST', '2'),
-('Get section detail', 'api/v1/sections/:id', NULL, 'academics_parent', NULL, 'api', 'GET', '2'),
-('Update section detail', 'api/v1/sections/:id', NULL, 'academics_parent', NULL, 'api', 'PUT', '2'),
-('Delete section', 'api/v1/sections/:id', NULL, 'academics_parent', NULL, 'api', 'DELETE', '2'),
--- end academics
+--start classes
+('Classes', 'classes', 'leave.svg', NULL, 2, 'menu-screen', NULL, '2'),
+('Classes Edit', 'classes/edit/:id', NULL, 'classes', NULL, 'screen', NULL, '2'),
+('Get all classes', 'api/v1/classes', NULL, 'classes', NULL, 'api', 'GET', '2'),
+('Get class detail', 'api/v1/classes/:id', NULL, 'classes', NULL, 'api', 'GET', '2'),
+('Add new class', 'api/v1/classes', NULL, 'classes', NULL, 'api', 'POST', '2'),
+('Update class detail', 'api/v1/classes/:id', NULL, 'classes', NULL, 'api', 'PUT', '2'),
+('Delete class', 'api/v1/classes/:id', NULL, 'classes', NULL, 'api', 'DELETE', '2'),
+--end classes
+
+--start class teachers
+('Class Teachers', 'class-teachers', 'leave.svg', NULL, 2, 'menu-screen', NULL, '2'),
+('Class Teachers Edit', 'class-teachers/edit/:id', NULL, 'class-teachers', NULL, 'screen', NULL, '2'),
+('Get class with teacher details', 'api/v1/class-teachers', NULL, 'class-teachers', NULL, 'api', 'GET', '2'),
+('Add class teacher', 'api/v1/class-teachers', NULL, 'class-teachers', NULL, 'api', 'POST', '2'),
+('Get class teacher detail', 'api/v1/class-teachers/:id', NULL, 'class-teachers', NULL, 'api', 'GET', '2'),
+('Update class teacher detail', 'api/v1/class-teachers/:id', NULL, 'class-teachers', NULL, 'api', 'PUT', '2'),
+--end class teachers
+
+--start sections
+('Sections', 'sections', 'leave.svg', NULL, 3, 'menu-screen', NULL, '2'),
+('Section Edit', 'sections/edit/:id', NULL, 'sections', NULL, 'screen', NULL, '2'),
+('Get all sections', 'api/v1/sections', NULL, 'sections', NULL, 'api', 'GET', '2'),
+('Add new section', 'api/v1/sections', NULL, 'sections', NULL, 'api', 'POST', '2'),
+('Get section detail', 'api/v1/sections/:id', NULL, 'sections', NULL, 'api', 'GET', '2'),
+('Update section detail', 'api/v1/sections/:id', NULL, 'sections', NULL, 'api', 'PUT', '2'),
+('Delete section', 'api/v1/sections/:id', NULL, 'sections', NULL, 'api', 'DELETE', '2'),
+-- end sections
 
 --start student
 ('Students', 'students_parent', 'students.svg', NULL, 4, 'menu-screen', NULL, '2'),
@@ -85,67 +90,70 @@ VALUES
 -- end student
 
 -- start communication
-('Communication', 'communication_parent', 'communication.svg', NULL, 5, 'menu-screen', NULL, '2'),
-('Notice Board', 'notices', NULL, 'communication_parent', 1, 'menu-screen', NULL, '2'),
-('Add Notice', 'notices/add', NULL, 'communication_parent', 2, 'menu-screen', NULL, '2'),
-('Manage Notices', 'notices/manage', NULL, 'communication_parent', 3, 'menu-screen', NULL, '2'),
-('View Notice', 'notices/:id', NULL, 'communication_parent', NULL, 'screen', NULL, '2'),
-('Edit Notice', 'notices/edit/:id', NULL, 'communication_parent', NULL, 'screen', NULL, '2'),
-('Get notice recipient list', 'api/v1/notices/recipients/list', NULL, 'communication_parent', NULL, 'api', 'GET', '2'),
-('Handle notice status', 'api/v1/notices/:id/status', NULL, 'communication_parent', NULL, 'api', 'POST', '2'),
-('Get notice detail', 'api/v1/notices/:id', NULL, 'communication_parent', NULL, 'api', 'GET', '2'),
-('Get all notices', 'api/v1/notices', NULL, 'communication_parent', NULL, 'api', 'GET', '2'),
-('Add new notice', 'api/v1/notices', NULL, 'communication_parent', NULL, 'api', 'POST', '2'),
-('Update notice detail', 'api/v1/notices/:id', NULL, 'communication_parent', NULL, 'api', 'PUT', '2'),
+('Notices', 'notices_parent', 'communication.svg', NULL, 5, 'menu-screen', NULL, '2'),
+('All Notices', 'notices', NULL, 'notices_parent', 1, 'menu-screen', NULL, '2'),
+('Add Notice', 'notices/add', NULL, 'notices_parent', 2, 'menu-screen', NULL, '2'),
+('Manage Notices', 'notices/manage', NULL, 'notices_parent', 3, 'menu-screen', NULL, '2'),
+('View Notice', 'notices/:id', NULL, 'notices_parent', NULL, 'screen', NULL, '2'),
+('Edit Notice', 'notices/edit/:id', NULL, 'notices_parent', NULL, 'screen', NULL, '2'),
+('Get notice recipient list', 'api/v1/notices/recipients/list', NULL, 'notices_parent', NULL, 'api', 'GET', '2'),
+('Handle notice status', 'api/v1/notices/:id/status', NULL, 'notices_parent', NULL, 'api', 'POST', '2'),
+('Get notice detail', 'api/v1/notices/:id', NULL, 'notices_parent', NULL, 'api', 'GET', '2'),
+('Get all notices', 'api/v1/notices', NULL, 'notices_parent', NULL, 'api', 'GET', '2'),
+('Add new notice', 'api/v1/notices', NULL, 'notices_parent', NULL, 'api', 'POST', '2'),
+('Update notice detail', 'api/v1/notices/:id', NULL, 'notices_parent', NULL, 'api', 'PUT', '2'),
 -- end communication
 
--- start hr
-('Human Resource', 'hr_parent', 'hr.svg', NULL, 6, 'menu-screen', NULL, '2'),
-('Staff List', 'staffs', NULL, 'hr_parent', 1, 'menu-screen', NULL, '2'),
-('Add Staff', 'staffs/add', NULL, 'hr_parent', 2, 'menu-screen', NULL, '2'),
-('Departments', 'departments', NULL, 'hr_parent', 3, 'menu-screen', NULL, '2'),
-('View Staffs', 'staffs/:id', NULL, 'hr_parent', NULL, 'screen', NULL, '2'),
-('Edit Staff', 'staffs/edit/:id', NULL, 'hr_parent', NULL, 'screen', NULL, '2'),
-('Get all staffs', 'api/v1/staffs', NULL, 'hr_parent', NULL, 'api', 'GET', '2'),
-('Add new staff', 'api/v1/staffs', NULL, 'hr_parent', NULL, 'api', 'POST', '2'),
-('Get staff detail', 'api/v1/staffs/:id', NULL, 'hr_parent', NULL, 'api', 'GET', '2'),
-('Update staff detail', 'api/v1/staffs/:id', NULL, 'hr_parent', NULL, 'api', 'PUT', '2'),
-('Handle staff status', 'api/v1/staffs/:id/status', NULL, 'hr_parent', NULL, 'api', 'POST', '2'),
-('Edit Department', 'departments/edit/id', NULL, 'hr_parent', NULL, 'screen', NULL, '2'),
-('Get all departments', 'api/v1/departments', NULL, 'hr_parent', NULL, 'api', 'GET', '2'),
-('Add new department', 'api/v1/departments', NULL, 'hr_parent', NULL, 'api', 'POST', '2'),
-('Get department detail', 'api/v1/departments/:id', NULL, 'hr_parent', NULL, 'api', 'GET', '2'),
-('Update department detail', 'api/v1/departments/:id', NULL, 'hr_parent', NULL, 'api', 'PUT', '2'),
-('Delete department', 'api/v1/departments/:id', NULL, 'hr_parent', NULL, 'api', 'DELETE', '2'),
--- end hr
+-- start staffs
+('Staffs', 'staffs_parent', 'hr.svg', NULL, 6, 'menu-screen', NULL, '2'),
+('Staff List', 'staffs', NULL, 'staffs_parent', 1, 'menu-screen', NULL, '2'),
+('Add Staff', 'staffs/add', NULL, 'staffs_parent', 2, 'menu-screen', NULL, '2'),
+('View Staffs', 'staffs/:id', NULL, 'staffs_parent', NULL, 'screen', NULL, '2'),
+('Edit Staff', 'staffs/edit/:id', NULL, 'staffs_parent', NULL, 'screen', NULL, '2'),
+('Get all staffs', 'api/v1/staffs', NULL, 'staffs_parent', NULL, 'api', 'GET', '2'),
+('Add new staff', 'api/v1/staffs', NULL, 'staffs_parent', NULL, 'api', 'POST', '2'),
+('Get staff detail', 'api/v1/staffs/:id', NULL, 'staffs_parent', NULL, 'api', 'GET', '2'),
+('Update staff detail', 'api/v1/staffs/:id', NULL, 'staffs_parent', NULL, 'api', 'PUT', '2'),
+('Handle staff status', 'api/v1/staffs/:id/status', NULL, 'staffs_parent', NULL, 'api', 'POST', '2'),
+--end staffs
+
+--start departments
+('Departments', 'departments', 'hr.svg', NULL, 7, 'menu-screen', NULL, '2'),
+('Edit Department', 'departments/edit/:id', NULL, 'departments', NULL, 'screen', NULL, '2'),
+('Get all departments', 'api/v1/departments', NULL, 'departments', NULL, 'api', 'GET', '2'),
+('Add new department', 'api/v1/departments', NULL, 'departments', NULL, 'api', 'POST', '2'),
+('Get department detail', 'api/v1/departments/:id', NULL, 'departments', NULL, 'api', 'GET', '2'),
+('Update department detail', 'api/v1/departments/:id', NULL, 'departments', NULL, 'api', 'PUT', '2'),
+('Delete department', 'api/v1/departments/:id', NULL, 'departments', NULL, 'api', 'DELETE', '2'),
+--end departments
+
 
 -- start access setting
-('Access Setting', 'access_setting_parent', 'rolesAndPermissions.svg', NULL, 7, 'menu-screen', NULL, '2'),
-('Roles & Permissions', 'roles-and-permissions', NULL, 'access_setting_parent', 1, 'menu-screen', NULL, '2'),
-('Get all roles', 'api/v1/roles', NULL, 'access_setting_parent', NULL, 'api', 'GET', '2'),
-('Add new role', 'api/v1/roles', NULL, 'access_setting_parent', NULL, 'api', 'POST', '2'),
-('Switch user role', 'api/v1/roles/switch', NULL, 'access_setting_parent', NULL, 'api', 'POST', '2'),
-('Update role', 'api/v1/roles/:id', NULL, 'access_setting_parent', NULL, 'api', 'PUT', '2'),
-('Handle role status', 'api/v1/roles/:id/status', NULL, 'access_setting_parent', NULL, 'api', 'POST', '2'),
-('Get role detail', 'api/v1/roles/:id', NULL, 'access_setting_parent', NULL, 'api', 'GET', '2'),
-('Get role permissions', 'api/v1/roles/:id/permissions', NULL, 'access_setting_parent', NULL, 'api', 'GET', '2'),
-('Add role permissions', 'api/v1/roles/:id/permissions', NULL, 'access_setting_parent', NULL, 'api', 'POST', '2'),
-('Get role users', 'api/v1/roles/:id/users', NULL, 'access_setting_parent', NULL, 'api', 'GET', '2'),
+('Roles & Permissions', 'roles-and-permissions', NULL, 'roles-and-permissions', 7, 'menu-screen', NULL, '2'),
+('Get all roles', 'api/v1/roles', NULL, 'roles-and-permissions', NULL, 'api', 'GET', '2'),
+('Add new role', 'api/v1/roles', NULL, 'roles-and-permissions', NULL, 'api', 'POST', '2'),
+('Switch user role', 'api/v1/roles/switch', NULL, 'roles-and-permissions', NULL, 'api', 'POST', '2'),
+('Update role', 'api/v1/roles/:id', NULL, 'roles-and-permissions', NULL, 'api', 'PUT', '2'),
+('Handle role status', 'api/v1/roles/:id/status', NULL, 'roles-and-permissions', NULL, 'api', 'POST', '2'),
+('Get role detail', 'api/v1/roles/:id', NULL, 'roles-and-permissions', NULL, 'api', 'GET', '2'),
+('Get role permissions', 'api/v1/roles/:id/permissions', NULL, 'roles-and-permissions', NULL, 'api', 'GET', '2'),
+('Add role permissions', 'api/v1/roles/:id/permissions', NULL, 'roles-and-permissions', NULL, 'api', 'POST', '2'),
+('Get role users', 'api/v1/roles/:id/users', NULL, 'roles-and-permissions', NULL, 'api', 'GET', '2'),
 -- end access setting
 
 -- start super admin
 ('Super Admin Dashboard', '', NULL, NULL, NULL, 'screen', NULL, '1'),
 ('Schools', 'schools', 'schools.svg', NULL, 1, 'menu-screen', NULL, '1'),
-('Get All Schools', 'api/v1/admin/schools', NULL, 'schools', NULL, 'api', 'GET', '1'),
-('Add Schools', 'api/v1/admin/schools', NULL, 'schools', NULL, 'api', 'POST', '1'),
-('Update School', 'api/v1/admin/schools/:id', NULL, 'schools', NULL, 'api', 'PUT', '1'),
+('Get All Schools', 'api/v1/schools', NULL, 'schools', NULL, 'api', 'GET', '1'),
+('Add Schools', 'api/v1/schools', NULL, 'schools', NULL, 'api', 'POST', '1'),
+('Update School', 'api/v1/schools/:id', NULL, 'schools', NULL, 'api', 'PUT', '1'),
 ('Update School screen', 'schools/edit/:id', NULL, 'schools', NULL, 'api', 'PUT', '1'),
-('Delete School', 'api/v1/admin/schools/:id', NULL, 'schools', NULL, 'api', 'DELETE', '1'),
+('Delete School', 'api/v1/schools/:id', NULL, 'schools', NULL, 'api', 'DELETE', '1'),
 ('Access controls', 'access-controls', 'rolesAndPermissions.svg', NULL, 2, 'menu-screen', NULL, '1'),
-('Get All access controls', 'api/v1/admin/access-controls', NULL, 'access-controls', NULL, 'api', 'GET', '1'),
-('Add access control', 'api/v1/admin/access-controls', NULL, 'access-controls', NULL, 'api', 'POST', '1'),
-('Update access control', 'api/v1/admin/access-controls/:id', NULL, 'access-controls', NULL, 'api', 'PUT', '1'),
-('Delete access control', 'api/v1/admin/access-controls/:id', NULL, 'access-controls', NULL, 'api', 'DELETE', '1')
+('Get All access controls', 'api/v1/access-controls', NULL, 'access-controls', NULL, 'api', 'GET', '1'),
+('Add access control', 'api/v1/access-controls', NULL, 'access-controls', NULL, 'api', 'POST', '1'),
+('Update access control', 'api/v1/access-controls/:id', NULL, 'access-controls', NULL, 'api', 'PUT', '1'),
+('Delete access control', 'api/v1/access-controls/:id', NULL, 'access-controls', NULL, 'api', 'DELETE', '1')
 -- end super admin
 
 ON CONFLICT DO NOTHING;
@@ -185,3 +193,21 @@ RETURNING id;
 -- plain_pwd=iamadmin
 INSERT INTO users(name, email, role_id, school_id, is_active, is_email_verified, password)
 VALUES('School Admin', 'admin@school-admin.xyz', (SELECT currval('roles_id_seq')), -1, true, true, '$argon2id$v=19$m=65536,t=3,p=4$mZxqMB+b+KHqSa8apH8lkA$nAh/hjqfhY5AmNSsczjwl7gOOysBCyBGQoio9nwaJ1U');
+
+
+INSERT INTO invoice_status(code, name, description)
+VALUES
+    ('DRAFT', 'Create Invoice', 'Invoice Drafted'),
+    ('ISSUED', 'Issue Invoice', 'Unpaid'),
+    ('PAID', 'Receive Payment', 'Paid'),
+    ('PARTIALLY_PAID', 'Receive Partial Payment', 'Partial Payment Received'),
+    ('REFUNDED', 'Refund Invoice', 'Payment refunded to the payer.'),
+    ('DISPUTED', 'Raise Dispute', 'Dispute Raised'),
+    ('CANCELLED', ' Cancel Invoice', 'Invoice Cancelled');
+
+INSERT INTO attendance_status (code, description) 
+VALUES
+    ('PR', 'Present'),
+    ('LA', 'Late'),
+    ('AB', 'Absent'),
+    ('PP', 'Partially Present');
