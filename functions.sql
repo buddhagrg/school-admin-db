@@ -985,10 +985,10 @@ EXCEPTION
 END;
 $BODY$;
 
--- invoice create sample
+-- invoice generate sample
 -- {
 --   "schoolId": 1,
---   "invoiceModifier": 3, -- one who is creating the invoice
+--   "initiator": 3, -- one who is creating the invoice
 --   "invoices": [
 --     {
 --       "userId": 101,
@@ -1002,36 +1002,15 @@ $BODY$;
 --   ]
 -- }
 
--- invoice update sample
--- {
---   "schoolId": 1,
---   "invoiceModifier": 3, -- one who is updating the invoice
---   "invoices": [
---     {
---       "status": "ISSUED"
---       "invoiceId": 2 
---       "userId": 101,
---       "description": "Monthly tuition fee for John Doe",
---       "dueDate": "2024-12-31",
---       "items": [
---         { invoiceItemId: 1, "feeId": 1, "description": 'transport fee', "quantity": 1 },
---         { invoiceItemId: 2, "feeId": 2, "description": 'tuition fee', "quantity": 1 }
---       ]
---     }
---   ]
--- }
 
-
--- add/update invoices
-DROP FUNCTION IF EXISTS public.add_or_update_invoices;
-CREATE OR REPLACE FUNCTION add_or_update_invoices(payload JSONB)
+-- generate invoices
+DROP FUNCTION IF EXISTS public.generate_invoices;
+CREATE OR REPLACE FUNCTION generate_invoices(payload JSONB)
 RETURNS TABLE(status boolean, message TEXT, description TEXT)
 LANGUAGE 'plpgsql'
 AS $BODY$
 DECLARE
     _schoolId INTEGER;
-    _operationType CHAR(1);
-    _operationTypeDescription VARCHAR(10);
     _initiator INT;
     _invoices JSONB;
     _discountAmt NUMERIC(10, 2);
@@ -1039,23 +1018,25 @@ DECLARE
     _items JSONB;
     _newInvoiceNumber JSONB;
     _newInvoiceId INTEGER;
-    _invoiceId INTEGER;
     _invoiceItemId INTEGER;
     _invoiceAmount NUMERIC(10, 2) DEFAULT 0;
     _invoiceOutstandingAmt NUMERIC(10, 2) DEFAULT 0;
     _invoiceDiscount NUMERIC(10, 2) DEFAULT 0;
-    _invoiceItemFeeTypeId INTEGER;
+    _invoiceItemFeeStructureId INTEGER;
     _invoiceItemFeeAmt NUMERIC(10, 2) DEFAULT 0;
     _invoiceItemDiscountAmt NUMERIC(10, 2) DEFAULT 0;
     _invoice JSONB;
     _item JSONB;
     _activeAcademicYearId INTEGER;
     _activeFiscalYearId INTEGER;
+    _academicPeriodId INTEGER;
+    _maxPeriodId INTEGER;
+    _maxPeriodInvoiceStatus VARCHAR(15);
 BEGIN
     _schoolId := (payload->>'schoolId')::INT;
-    _operationType := (payload->>'action')::CHAR(1);
     _invoices := (payload->>'action')::JSONB;
     _initiator := (payload->>'initiator')::JSONB;
+    _academicPeriodId := (payload->>'academicPeriodId')::JSONB;
 
     SELECT id
     INTO _activeFiscalYearId
@@ -1068,177 +1049,130 @@ BEGIN
     WHERE school_id = _schoolId AND is_active = true;
 
     IF _activeFiscalYearId IS NULL OR _activeAcademicYearId IS NULL THEN
-        RETURN QUARTERLY
-        SELECT false, "Denied. Either Fiscal year or Academic year is not setup properly.", NULL::TEXT;
+        RETURN QUERY
+        SELECT false, 'Denied. Either Fiscal year or Academic year is not setup properly.', NULL::TEXT;
     END IF;
 
-    IF _operationType = 'u' THEN
-        _operationTypeDescription := 'update';
+    FOR _invoice IN (SELECT * FROM _invoices)
+    LOOP
+        _invoiceUserId := _invoice->>'userId';
+        _items := _invoice->>'items';
 
-        FOR _invoice IN (SELECT * FROM _invoices)
+        -- validate user existence
+        IF NOT EXISTS(SELECT 1 FROM users WHERE id = _invoiceUserId AND school_id = _schoolId) THEN
+            RAISE NOTICE 'Invalid user_id (%) for invoice', _invoiceUserId;
+            CONTINUE;
+        END IF;
+
+        SELECT COALESCE(academic_period_id, 0), status
+        INTO _maxPeriodId, _maxPeriodInvoiceStatus
+        FROM invoices
+        WHERE school_id = _schoolId
+            AND user_id = _invoiceUserId
+            AND academic_year_id = _activeAcademicYearId
+        ORDER BY academic_period_id DESC
+        LIMIT 1;
+
+        IF (_academicPeriodId < _maxPeriodId) OR
+            (_academicPeriodId = _maxPeriodId AND _maxPeriodInvoiceStatus != 'CANCELLED')
+        THEN
+            RAISE NOTICE 'Denied. Invoice already generated for given period.';
+            CONTINUE;
+        END IF;
+
+        IF _maxPeriodId - _academicPeriodId != 1 THEN
+            RAISE NOTICE 'Denied. Invoice generation period gap can not be more than one.';
+            CONTINUE;
+        END IF;
+
+        -- insert invoice and get new invoice id
+        INSERT INTO invoices(
+            school_id,
+            academic_year_id,
+            fiscal_year_id,
+            academic_period_id,
+            initiator,
+            description,
+            user_id,
+            due_date,
+            status
+        ) VALUES(
+            _schoolId,
+            _activeAcademicYearId,
+            _activeFiscalYearId,
+            _academicPeriodId,
+            _initiator,
+            _invoice->>'description',
+            _invoiceUserId,
+            _invoice->>'dueDate',
+            'ISSUED'
+        ) RETURNING id INTO _newInvoiceId;
+
+        -- insert invoice items
+        FOR _item IN (SELECT * FROM _items)
         LOOP
-            _invoiceUserId := _invoice->>'userId';
-            _items := _invoice->>'items';
-            _invoiceId := _invoice->>'invoiceId';
+            SELECT fee_structure_id, amount, discounted_amt
+            INTO _invoiceItemFeeStructureId, _invoiceItemFeeAmt, _invoiceDiscount
+            FROM student_fees
+            WHERE id = (_item->>'studentFeeId');
 
-            -- validate user existence
-            IF NOT EXISTS(SELECT 1 FROM users WHERE id = _invoiceUserId AND school_id = _schoolId) THEN
-                RAISE NOTICE 'Invalid user_id (%) for invoice', _invoiceUserId;
-                CONTINUE;
-            END IF;
-
-            IF NOT EXISTS(
-                SELECT 1 FROM invoices
-                WHERE id = _invoiceId
-                AND school_id = _schoolId
-            ) THEN
-                RAISE NOTICE 'Invalid invoice_id (%)', _invoiceId;
-                CONTINUE;
-            END IF;
-
-            IF NOT EXISTS(
-                SELECT 1 FROM invoices
-                WHERE id = _invoiceId AND status IN ('DRAFT', 'ISSUED')
-            ) THEN
-                RAISE NOTICE 'Invoice can not be updated as it is issued already: %', _invoice;
-            END IF;
-
-            -- update invoice items
-            FOR _item IN (SELECT * FROM _items)
-            LOOP
-                _invoiceItemId := _item->>'invoiceItemId';
-                SELECT fee_type_id INTO _invoiceItemFeeTypeId FROM student_fees WHERE id = (_item->>'feeId');
-                SELECT amount INTO _invoiceItemFeeAmt FROM student_fees WHERE id = (_item->>'feeId');
-                SELECT discounted_amt INTO _invoiceItemDiscountAmt FROM student_fees WHERE id = (_item->>'feeId');
-
-                UPDATE invoice_items
-                SET amount = _item->>'amount',
-                    quantity = _item->>'quantity',
-                    description = _item->>'description',
-                    total_amount = (_item->>'quantity') * _invoiceItemFeeAmt - _invoiceItemDiscountAmt,
-                    total_discount = _invoiceItemDiscountAmt * (_item->>'quantity')::INTEGER
-                WHERE id = _invoiceItemId AND invoice_id = _invoiceId AND school_id = _schoolId;
-            END LOOP;
-
-            SELECT COALESCE(SUM(total_amount), 0)
-            INTO _invoiceAmount
-            FROM invoice_items
-            WHERE invoice_id = _invoiceId;
-
-            SELECT COALESCE(SUM(total_discount), 0)
-            INTO _invoiceDiscount
-            FROM invoice_items
-            WHERE invoice_id = _invoiceId;
-
-            _invoiceOutstandingAmt := _invoiceAmount - _invoiceDiscount;
-
-            -- update invoice number and amount
-            UPDATE invoices SET
-                invoice_number = _newInvoiceNumber,
-                amount = _invoiceOutstandingAmt,
-                outstanding_amt = _invoiceOutstandingAmt,
-                initiator = _initiator
-            WHERE id = _invoiceId;
-        END LOOP;
-
-        RETURN QUERY
-        SELECT true, 'Invoice updated successfully', NULL::TEXT;
-    ELSE
-        _operationTypeDescription = 'add';
-
-        FOR _invoice IN (SELECT * FROM _invoices)
-        LOOP
-            _invoiceUserId := _invoice->>'userId';
-            _items := _invoice->>'items';
-
-            -- validate user existence
-            IF NOT EXISTS(SELECT 1 FROM users WHERE id = _invoiceUserId AND school_id = _schoolId) THEN
-                RAISE NOTICE 'Invalid user_id (%) for invoice', _invoiceUserId;
-                CONTINUE;
-            END IF;
-
-            -- insert invoice and get new invoice id
-            INSERT INTO invoices(
-                school_id,
-                academic_year_id,
-                fiscal_year_id,
-                initiator,
+            INSERT INTO invoice_items(
+                school_id ,
+                invoice_id,
+                fee_structure_id,
+                student_fee_id,
                 description,
-                user_id,
-                due_date
+                amount,
+                quantity,
+                total_amount,
+                total_discount
             ) VALUES(
                 _schoolId,
-                _activeAcademicYearId,
-                _activeFiscalYearId,
-                _initiator,
-                _invoice->>'description',
-                _invoiceUserId,
-                _invoice->>'dueDate'
-            ) RETURNING id INTO _newInvoiceId;
-
-            SELECT fee_type_id INTO _invoiceItemFeeTypeId FROM student_fees WHERE id = (_item->>'feeId');
-            SELECT amount INTO _invoiceItemFeeAmt FROM student_fees WHERE id = (_item->>'feeId');
-            SELECT discounted_amt INTO _invoiceItemDiscountAmt FROM student_fees WHERE id = (_item->>'feeId');
-
-            -- insert invoice items
-            FOR _item IN (SELECT * FROM _items)
-            LOOP
-                INSERT INTO invoice_items(
-                    school_id ,
-                    invoice_id,
-                    fee_type_code,
-                    description,
-                    amount,
-                    quantity,
-                    total_amount,
-                    total_discount
-                ) VALUES(
-                    _schoolId,
-                    _newInvoiceId,
-                    _invoiceItemFeeTypeId,
-                    _item->>'description',
-                    _invoiceItemFeeAmt,
-                    _item->>'quantity',
-                    (_item->>'quantity') * _invoiceItemFeeAmt - _invoiceItemDiscountAmt,
-                    _invoiceItemDiscountAmt * (_item->>'quantity')::INTEGER
-                );
-            END LOOP;
-
-            -- generate invoice number
-            _newInvoiceNumber := CONCAT(
-                'INV-',
-                TO_CHAR(CURRENT_DATE, 'YYYYMM'),
-                '-', _newInvoiceId,
-                '-', _schoolId
+                _newInvoiceId,
+                _invoiceItemFeeStructureId,
+                _item->>'studentFeeId',
+                _item->>'description',
+                _invoiceItemFeeAmt,
+                _item->>'quantity',
+                (_item->>'quantity') * _invoiceItemFeeAmt - _invoiceItemDiscountAmt,
+                _invoiceItemDiscountAmt * (_item->>'quantity')::INTEGER
             );
-
-            SELECT COALESCE(SUM(total_amount), 0)
-            FROM invoice_items
-            WHERE invoice_id = _newInvoiceId
-            INTO _invoiceAmount;
-
-            SELECT COALESCE(SUM(total_discount), 0)
-            FROM invoice_items
-            WHERE invoice_id = _newInvoiceId
-            INTO _invoiceDiscount;
-
-            _invoiceOutstandingAmt := _invoiceAmount - _invoiceDiscount;
-
-            -- update invoice number and amount
-            UPDATE invoices SET
-                invoice_number = _newInvoiceNumber,
-                amount = _invoiceOutstandingAmt,
-                outstanding_amt =_invoiceOutstandingAmt
-            WHERE id = _newInvoiceId;
         END LOOP;
 
-        RETURN QUERY
-        SELECT true, 'Invoice added successfully', NULL::TEXT;
-    END IF;
+        -- generate invoice number
+        _newInvoiceNumber := CONCAT(
+            'INV-',
+            TO_CHAR(CURRENT_DATE, 'YYYYMM'),
+            '-', _newInvoiceId,
+            '-', _schoolId
+        );
+
+        SELECT COALESCE(SUM(total_amount), 0)
+        FROM invoice_items
+        WHERE invoice_id = _newInvoiceId
+        INTO _invoiceAmount;
+
+        SELECT COALESCE(SUM(total_discount), 0)
+        FROM invoice_items
+        WHERE invoice_id = _newInvoiceId
+        INTO _invoiceDiscount;
+
+        _invoiceOutstandingAmt := _invoiceAmount - _invoiceDiscount;
+
+        -- update invoice number and amount
+        UPDATE invoices SET
+            invoice_number = _newInvoiceNumber,
+            amount = _invoiceOutstandingAmt,
+            outstanding_amt = _invoiceOutstandingAmt
+        WHERE id = _newInvoiceId;
+    END LOOP;
+
+    RETURN QUERY
+    SELECT true, 'Invoice generated successfully', NULL::TEXT;
 EXCEPTION
     WHEN OTHERS THEN
         RETURN QUERY
-        SELECT false, 'Unable to ' || _operationTypeDescription || ' invoice', SQLERRM;
+        SELECT false, 'Unable to generate invoice', SQLERRM;
 END
 $BODY$;
 
@@ -1281,8 +1215,8 @@ BEGIN
     WHERE school_id = _schoolId AND is_active = true;
 
     IF _activeFiscalYearId IS NULL OR _activeAcademicYearId IS NULL THEN
-        RETURN QUARTERLY
-        SELECT false, "Denied. Either Fiscal year or Academic year is not setup properly.", NULL::TEXT;
+        RETURN QUERY
+        SELECT false, 'Denied. Either Fiscal year or Academic year is not setup properly.', NULL::TEXT;
     END IF;
 
     IF NOT EXISTS(SELECT 1 FROM invoices WHERE school_id = _schoolId AND id = _invoiceId) THEN
@@ -1303,17 +1237,17 @@ BEGIN
     END IF;
 
     IF _paymentAmount > _invoiceOutstandingAmt THEN
+        _finalOutstandingAmt := 0;
+        _finalInvoiceStatus := 'PAID';
         _creditAmt := _paymentAmount - _invoiceOutstandingAmt;
-        _finalOutstandingAmt := 0;
-        _finalInvoiceStatus = 'PAID';
     ELSIF _paymentAmount = _invoiceOutstandingAmt THEN
-        _creditAmt := 0;
         _finalOutstandingAmt := 0;
-        _finalInvoiceStatus = 'PAID';
-    ELSE
+        _finalInvoiceStatus := 'PAID';
         _creditAmt := 0;
+    ELSE
         _finalOutstandingAmt := _invoiceOutstandingAmt - _paymentAmount;
         _finalInvoiceStatus := 'PARTIALLY_PAID';
+        _creditAmt := 0;
     END IF;
 
     UPDATE invoices
@@ -1323,8 +1257,8 @@ BEGIN
         status = _finalInvoiceStatus
     WHERE id = _invoiceId;
 
-    INSERT INTO transactions(school_id, user_id, initiator, type, status, invoice_id, amount, payment_method)
-    VALUES(_schoolId, _invoiceUserId, _initiator, 'CREDIT', 'SUCCESS', _invoiceId, _paymentAmount, _paymentMethod);
+    INSERT INTO transactions(school_id, academic_year_id, fiscal_year_id, user_id, initiator, type, status, invoice_id, amount, payment_method)
+    VALUES(_schoolId, _activeAcademicYearId, _activeFiscalYearId, _invoiceUserId, _initiator, 'CREDIT', 'SUCCESS', _invoiceId, _paymentAmount, _paymentMethod);
 
     IF _creditAmt > 0 THEN
         INSERT INTO credits(school_id, user_id, amount)
@@ -1356,7 +1290,6 @@ DECLARE
     _schoolId INTEGER;
     _refundAmt NUMERIC(10, 2);
     _invoiceId INTEGER;
-    _invoiceAmt NUMERIC(10, 2);
     _invoiceStatus VARCHAR(15);
     _invoicePaidAmt NUMERIC(10, 2);
     _invoiceUserId INTEGER;
@@ -1374,9 +1307,9 @@ BEGIN
         SELECT false, 'Invoice does not exist', NULL:: TEXT;
     END IF;
 
-    SELECT status, COALESCE(paid_amt, 0), COALESCE(amt, 0), user_id
-    INTO _invoiceStatus, _invoicePaidAmt, _invoiceAmt, _invoiceUserId
-    FROM invoice_status
+    SELECT status, COALESCE(paid_amt, 0), user_id
+    INTO _invoiceStatus, _invoicePaidAmt, _invoiceUserId
+    FROM invoices
     WHERE school_id = _schoolId AND id = _invoiceId;
 
     IF _invoiceStatus != 'PAID' OR _refundAmt IS NULL THEN
@@ -1397,19 +1330,10 @@ BEGIN
 
     UPDATE invoices
     SET
-        refunded_amt = COALESCE(invoices.refunded_amt, 0) + _refundAmt,
+        refunded_amt = COALESCE(refunded_amt, 0) + _refundAmt,
+        status = 'REFUNDED',
         updated_date  = NOW()
-    WHERE t1.school_id = _schoolId AND t1.id = _invoiceId;
-
-    IF _creditAmt > 0 THEN
-        INSERT INTO credits(school_id, user_id, amount)
-        VALUES(_schoolId, _invoiceUserId, _refundAmt)
-        ON CONFLICT(school_id, user_id)
-        DO UPDATE SET
-            amount = COALESCE(credits.amount,0) + EXCLUDED.amount,
-            updated_date = NOW(),
-            reason = 'overpayment';
-    END IF;
+    WHERE school_id = _schoolId AND id = _invoiceId;
 
     RETURN QUERY
     SELECT true, 'Refund success', NULL::TEXT;
@@ -1453,7 +1377,7 @@ BEGIN
 
     IF _activeAcademicYearId IS NULL OR _activeFiscalYearId IS NULL THEN
         RETURN QUERY
-        SELECT false, "Denied. Either Fiscal year or Academic year is not setup properly.", NULL::TEXT;
+        SELECT false, 'Denied. Either Fiscal year or Academic year is not setup properly.', NULL::TEXT;
     END IF;
 
     FOR _item IN (SELECT * FROM _feeDetails)
@@ -1465,7 +1389,7 @@ BEGIN
             student_id,
             initiator,
             academic_period_id,
-            fee_id,
+            fee_structure_id,
             due_date,
             amount,
             discount_value,
@@ -1478,7 +1402,7 @@ BEGIN
             _studentId,
             _initiator,
             _item->>'academicPeriodId',
-            _item->>'feeId',
+            _item->>'feeStructureId',
             _item->>'dueDate',
             _item->>'amount',
             _item->>'discountValue',
@@ -1489,15 +1413,15 @@ BEGIN
                 (_item->>'amount') - COALESCE((_item->>'discountValue'),0)
             END
         )
-        ON CONFLICT(school_id, student_id, fee_id)
+        ON CONFLICT(school_id, academic_year_id, fiscal_year_id, student_id, fee_structure_id)
         DO UPDATE SET
-        initiator = EXCLUDED.initiator,
-        due_date = EXCLUDED.due_date,
-        amount = EXCLUDED.amount,
-        discount_value = EXCLUDED.discount_value,
-        discount_type = EXCLUDED.discount_type,
-        outstanding_amt = EXCLUDED.outstanding_amt
-        academic_period_id = EXCLUDED.academic_period_id;        
+            initiator = EXCLUDED.initiator,
+            due_date = EXCLUDED.due_date,
+            amount = EXCLUDED.amount,
+            discount_value = EXCLUDED.discount_value,
+            discount_type = EXCLUDED.discount_type,
+            outstanding_amt = EXCLUDED.outstanding_amt,
+            academic_period_id = EXCLUDED.academic_period_id;
     END LOOP;
 EXCEPTION
     WHEN OTHERS THEN

@@ -242,6 +242,16 @@ CREATE TABLE credits(
     UNIQUE(school_id, user_id)
 );
 
+CREATE TABLE payment_methods(
+    school_id INTEGER REFERENCES schools(school_id) NOT NULL,
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    description VARCHAR(70) DEFAULT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_date TIMESTAMP DEFAULT NULL
+);
+
 CREATE TABLE refunds(
     id SERIAL PRIMARY KEY,
     invoice_id INTEGER DEFAULT NULL,
@@ -250,7 +260,7 @@ CREATE TABLE refunds(
     user_id INTEGER REFERENCES users(id) NOT NULL,
     amount NUMERIC(10, 2) NOT NULL, -- Refund amount
     refunded_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    payment_method INT REFERENCES payment_methods(id) NOT NULL, -- Method of refund (e.g., "Bank Transfer", "Credit Card")
+    payment_method_id INT REFERENCES payment_methods(id) NOT NULL, -- Method of refund (e.g., "Bank Transfer", "Credit Card")
     status VARCHAR(20) CHECK(status IN('PENDING', 'PROGRESS', 'COMPLETED')) DEFAULT 'PENDING', -- Refund status: PENDING, PROGRESS, COMPLETED
     reason VARCHAR(255) DEFAULT NULL -- Reason for the refund (if applicable)
 );
@@ -337,11 +347,31 @@ CREATE TABLE invoice_status(
     description VARCHAR(70) DEFAULT NULL
 );
 
+CREATE TABLE fiscal_years(
+    id SERIAL PRIMARY KEY,
+    school_id INTEGER REFERENCES schools(school_id) NOT NULL,
+    name VARCHAR(70) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    is_active BOOLEAN DEFAULT false
+);
+
+CREATE TABLE academic_periods(
+    id SERIAL PRIMARY KEY,
+    school_id INTEGER REFERENCES schools(school_id) NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    academic_level_id INTEGER REFERENCES academic_levels(id) NOT NULL,
+    order_id INTEGER NOT NULL,
+    start_date DATE DEFAULT NULL,
+    end_date DATE DEFAULT NULL
+);
+
 CREATE TABLE invoices(
     id SERIAL PRIMARY KEY,
     school_id INTEGER REFERENCES schools(school_id) NOT NULL,
     fiscal_year_id INTEGER REFERENCES fiscal_years(id) NOT NULL,
     academic_year_id INTEGER REFERENCES academic_years(id) NOT NULL,
+    academic_period_id INTEGER REFERENCES academic_periods(id) NOT NULL,
     user_id INTEGER REFERENCES users(id) NOT NULL,
     initiator INTEGER REFERENCES users(id) NOT NULL,
     invoice_number VARCHAR(70) UNIQUE DEFAULT NULL,
@@ -353,8 +383,7 @@ CREATE TABLE invoices(
     paid_amt NUMERIC(10, 2) DEFAULT 0,
     outstanding_amt NUMERIC(10, 2) DEFAULT 0,
     refunded_amt NUMERIC(10, 2) DEFAULT 0,
-    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_date TIMESTAMP DEFAULT NULL
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE fees(
@@ -382,7 +411,7 @@ CREATE TABLE student_fees(
     academic_year_id INTEGER REFERENCES academic_years(id) NOT NULL,
     fiscal_year_id INTEGER REFERENCES fiscal_years(id) NOT NULL,
     initiator INTEGER REFERENCES users(id) NOT NULL,
-    fee_id INTEGER REFERENCES fee_structures(id) NOT NULL,
+    fee_structure_id INTEGER REFERENCES fee_structures(id) NOT NULL,
     due_date DATE DEFAULT NULL,
     amount NUMERIC(10, 2) NOT NULL,
     discount_value NUMERIC(10, 2) DEFAULT NULL,
@@ -398,7 +427,7 @@ CREATE TABLE invoice_items(
     id SERIAL PRIMARY KEY,
     school_id INTEGER REFERENCES schools(school_id) NOT NULL,
     invoice_id INTEGER REFERENCES invoices(id) NOT NULL,
-    fee_id INTEGER REFERENCES fee_structures(id) DEFAULT NULL,
+    fee_structure_id INTEGER REFERENCES fee_structures(id) DEFAULT NULL,
     student_fee_id INTEGER REFERENCES student_fees(id) DEFAULT NULL,
     description VARCHAR(50) DEFAULT NULL,
     amount NUMERIC(10, 2) NOT NULL,
@@ -438,45 +467,15 @@ CREATE TABLE transactions(
     user_id INTEGER REFERENCES users(id) DEFAULT NULL,
     initiator INTEGER REFERENCES users(id) NOT NULL,
     type VARCHAR(10) NOT NULL,
-    fee_id INTEGER REFERENCES fee_structures(id) DEFAULT NULL,
+    fee_structure_id INTEGER REFERENCES fee_structures(id) DEFAULT NULL,
     invoice_id INTEGER DEFAULT NULL,
     amount NUMERIC(10, 2) NOT NULL,
     payment_date TIMESTAMP DEFAULT CURRENT_DATE,
-    payment_method INT REFERENCES payment_methods(id) NOT NULL,
+    payment_method_id INT REFERENCES payment_methods(id) NOT NULL,
     transaction_id VARCHAR(100) UNIQUE DEFAULT NULL,
     status VARCHAR(30) CHECK(status IN('PENDING', 'SUCCESS')) DEFAULT 'PENDING',
     remarks TEXT DEFAULT NULL,
     updated_date TIMESTAMP DEFAULT NULL
-);
-
-CREATE TABLE payment_methods(
-    school_id INTEGER REFERENCES schools(school_id) NOT NULL,
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE,
-    description VARCHAR(70) DEFAULT NULL,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_date TIMESTAMP DEFAULT NULL
-);
-
-CREATE TABLE fiscal_years(
-    id SERIAL PRIMARY KEY,
-    school_id INTEGER REFERENCES schools(school_id) NOT NULL,
-    name VARCHAR(70) NOT NULL,
-    start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
-    is_active BOOLEAN DEFAULT false
-);
-
-CREATE TABLE academic_periods(
-    id SERIAL PRIMARY KEY,
-    school_id INTEGER REFERENCES schools(school_id) NOT NULL,
-    name VARCHAR(50) NOT NULL,
-    academic_level_id INTEGER REFERENCES academic_levels(id) NOT NULL,
-    order INTEGER NOT NULL,
-    start_date DATE DEFAULT NULL,
-    end_date DATE DEFAULT NULL,
-    UNIQUE(school_id, period_number)
 );
 
 CREATE TABLE academic_period_dates(
