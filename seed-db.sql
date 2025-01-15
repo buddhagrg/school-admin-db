@@ -48,7 +48,7 @@ VALUES
 -- end leave
 
 --start classes
-('Classes', 'classes', 'leave.svg', NULL, 2, 'menu-screen', NULL, '2'),
+('Classes', 'classes', 'class.svg', NULL, 2, 'menu-screen', NULL, '2'),
 ('Classes Edit', 'classes/edit/:id', NULL, 'classes', NULL, 'screen', NULL, '2'),
 ('Get all classes', 'api/v1/classes', NULL, 'classes', NULL, 'api', 'GET', '2'),
 ('Get class detail', 'api/v1/classes/:id', NULL, 'classes', NULL, 'api', 'GET', '2'),
@@ -58,7 +58,7 @@ VALUES
 --end classes
 
 --start class teachers
-('Class Teachers', 'class-teachers', 'leave.svg', NULL, 2, 'menu-screen', NULL, '2'),
+('Class Teachers', 'class-teachers', 'classTeacher.svg', NULL, 2, 'menu-screen', NULL, '2'),
 ('Class Teachers Edit', 'class-teachers/edit/:id', NULL, 'class-teachers', NULL, 'screen', NULL, '2'),
 ('Get class with teacher details', 'api/v1/class-teachers', NULL, 'class-teachers', NULL, 'api', 'GET', '2'),
 ('Add class teacher', 'api/v1/class-teachers', NULL, 'class-teachers', NULL, 'api', 'POST', '2'),
@@ -67,7 +67,7 @@ VALUES
 --end class teachers
 
 --start sections
-('Sections', 'sections', 'leave.svg', NULL, 3, 'menu-screen', NULL, '2'),
+('Sections', 'sections', 'section.svg', NULL, 3, 'menu-screen', NULL, '2'),
 ('Section Edit', 'sections/edit/:id', NULL, 'sections', NULL, 'screen', NULL, '2'),
 ('Get all sections', 'api/v1/sections', NULL, 'sections', NULL, 'api', 'GET', '2'),
 ('Add new section', 'api/v1/sections', NULL, 'sections', NULL, 'api', 'POST', '2'),
@@ -77,7 +77,7 @@ VALUES
 -- end sections
 
 --start student
-('Students', 'students_parent', 'students.svg', NULL, 4, 'menu-screen', NULL, '2'),
+('Students', 'students_parent', 'student.svg', NULL, 4, 'menu-screen', NULL, '2'),
 ('Student List', 'students', NULL, 'students_parent', 1, 'menu-screen', NULL, '2'),
 ('Add Student', 'students/add', NULL, 'students_parent', 2, 'menu-screen', NULL, '2'),
 ('View Student', 'students/:id', NULL, 'students_parent', NULL, 'screen', NULL, '2'),
@@ -118,7 +118,7 @@ VALUES
 --end staffs
 
 --start departments
-('Departments', 'departments', 'hr.svg', NULL, 7, 'menu-screen', NULL, '2'),
+('Departments', 'departments', 'department.svg', NULL, 7, 'menu-screen', NULL, '2'),
 ('Edit Department', 'departments/edit/:id', NULL, 'departments', NULL, 'screen', NULL, '2'),
 ('Get all departments', 'api/v1/departments', NULL, 'departments', NULL, 'api', 'GET', '2'),
 ('Add new department', 'api/v1/departments', NULL, 'departments', NULL, 'api', 'POST', '2'),
@@ -129,7 +129,7 @@ VALUES
 
 
 -- start access setting
-('Roles & Permissions', 'roles-and-permissions', NULL, 'roles-and-permissions', 7, 'menu-screen', NULL, '2'),
+('Roles & Permissions', 'roles-and-permissions', 'role.svg', 'roles-and-permissions', 7, 'menu-screen', NULL, '2'),
 ('Get all roles', 'api/v1/roles', NULL, 'roles-and-permissions', NULL, 'api', 'GET', '2'),
 ('Add new role', 'api/v1/roles', NULL, 'roles-and-permissions', NULL, 'api', 'POST', '2'),
 ('Switch user role', 'api/v1/roles/switch', NULL, 'roles-and-permissions', NULL, 'api', 'POST', '2'),
@@ -143,13 +143,13 @@ VALUES
 
 -- start super admin
 ('Super Admin Dashboard', '', NULL, NULL, NULL, 'screen', NULL, '1'),
-('Schools', 'schools', 'schools.svg', NULL, 1, 'menu-screen', NULL, '1'),
+('Schools', 'schools', 'school.svg', NULL, 1, 'menu-screen', NULL, '1'),
 ('Get All Schools', 'api/v1/schools', NULL, 'schools', NULL, 'api', 'GET', '1'),
 ('Add Schools', 'api/v1/schools', NULL, 'schools', NULL, 'api', 'POST', '1'),
 ('Update School', 'api/v1/schools/:id', NULL, 'schools', NULL, 'api', 'PUT', '1'),
 ('Update School screen', 'schools/edit/:id', NULL, 'schools', NULL, 'api', 'PUT', '1'),
 ('Delete School', 'api/v1/schools/:id', NULL, 'schools', NULL, 'api', 'DELETE', '1'),
-('Access controls', 'access-controls', 'rolesAndPermissions.svg', NULL, 2, 'menu-screen', NULL, '1'),
+('Access controls', 'access-controls', 'role.svg', NULL, 2, 'menu-screen', NULL, '1'),
 ('Get All access controls', 'api/v1/access-controls', NULL, 'access-controls', NULL, 'api', 'GET', '1'),
 ('Add access control', 'api/v1/access-controls', NULL, 'access-controls', NULL, 'api', 'POST', '1'),
 ('Update access control', 'api/v1/access-controls/:id', NULL, 'access-controls', NULL, 'api', 'PUT', '1'),
