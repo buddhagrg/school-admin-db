@@ -153,7 +153,10 @@ VALUES
 ('Get All access controls', 'api/v1/access-controls', NULL, 'access-controls', NULL, 'api', 'GET', '1'),
 ('Add access control', 'api/v1/access-controls', NULL, 'access-controls', NULL, 'api', 'POST', '1'),
 ('Update access control', 'api/v1/access-controls/:id', NULL, 'access-controls', NULL, 'api', 'PUT', '1'),
-('Delete access control', 'api/v1/access-controls/:id', NULL, 'access-controls', NULL, 'api', 'DELETE', '1')
+('Delete access control', 'api/v1/access-controls/:id', NULL, 'access-controls', NULL, 'api', 'DELETE', '1'),
+
+--NEW
+('Academic Level and Period', 'academic-level-and-period', '', NULL, 'menu-screen', NULL, '2')
 -- end super admin
 
 ON CONFLICT DO NOTHING;
