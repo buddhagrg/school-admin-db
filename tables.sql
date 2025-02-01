@@ -361,9 +361,10 @@ CREATE TABLE academic_periods(
     school_id INTEGER REFERENCES schools(school_id) NOT NULL,
     name VARCHAR(50) NOT NULL,
     academic_level_id INTEGER REFERENCES academic_levels(id) NOT NULL,
-    order_id INTEGER NOT NULL,
+    order_id INTEGER DEFAULT NULL,
     start_date DATE DEFAULT NULL,
-    end_date DATE DEFAULT NULL
+    end_date DATE DEFAULT NULL,
+    UNIQUE(school_id, academic_period_id, order_id)
 );
 
 CREATE TABLE invoices(
