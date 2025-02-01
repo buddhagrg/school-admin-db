@@ -1429,3 +1429,62 @@ EXCEPTION
         SELECT false, 'Unable to assign fees to student', SQLERRM::TEXT;
 END
 $BODY$;
+
+DROP FUNCTION IF EXISTS public.delete_period_order;
+CREATE OR REPLACE FUNCTION delete_period_order(payload jsonb)
+RETURNS TABLE (status boolean, message TEXT, description TEXT)
+LANGUAGE 'plpgsql'
+AS $BODY$
+DECLARE
+    _schoolId INTEGER;
+    _academicPeriodId INTEGER;
+    _academicLevelId INTEGER;
+    _deletedOrderId INTEGER;
+BEGIN
+    _schoolId := (payload->>'schoolId');
+    _academicPeriodId := (payload->>'academicPeriodId');
+
+    IF NOT EXISTS(SELECT 1 FROM academic_periods WHERE school_id = _schoolId AND id = _academicPeriodId) THEN
+        RETURN QUERY
+        SELECT false, 'Period does not exist', NULL::TEXT;
+    END IF;
+
+    SELECT academic_level_id INTO _academicLevelId
+    FROM academic_periods
+    WHERE school_id = _schoolId AND id = _academicPeriodId;
+
+    DELETE FROM academic_periods
+    WHERE school_id = _schoolId AND id = _academicPeriodId
+    RETURNING order_id INTO _deletedOrderId;
+
+    IF NOT EXISTS(
+        SELECT 1 FROM academic_periods
+        WHERE school_id = _schoolId
+            AND academic_level_id = _academicLevelId
+            AND order_id > _deletedOrderId
+    ) THEN
+        RETURN QUERY
+        SELECT true, 'Period deleted successfully', NULL::TEXT;
+    END IF;
+
+
+    UPDATE academic_periods
+    SET order_id = -order_id
+    WHERE school_id = _schoolId
+        AND academic_level_id = _academicLevelId
+        AND order_id > _deletedOrderId;    
+
+    UPDATE academic_periods
+    SET order_id = ABS(order_id) - 1
+    WHERE school_id = _schoolId
+        AND academic_level_id = _academicLevelId
+        AND order_id < 0;
+    
+    RETURN QUERY
+    SELECT true, 'Period deleted successfully', NULL::TEXT;
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN QUERY
+        SELECT false, 'Unable to delete period', SQLERRM::TEXT;
+END
+$BODY$;
