@@ -156,7 +156,7 @@ VALUES
 ('Delete access control', 'api/v1/access-controls/:id', NULL, 'access-controls', NULL, 'api', 'DELETE', '1'),
 
 --NEW
-('Academic Level and Period', 'academic-level-and-period', '', NULL, 'menu-screen', NULL, '2')
+('Academic Level and Period', 'academic-level-and-period', '', NULL, 1, 'menu-screen', NULL, '2')
 -- end super admin
 
 ON CONFLICT DO NOTHING;
