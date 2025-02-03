@@ -129,7 +129,7 @@ VALUES
 
 
 -- start access setting
-('Roles & Permissions', 'roles-and-permissions', 'role.svg', 'roles-and-permissions', 7, 'menu-screen', NULL, '2'),
+('Roles & Permissions', 'roles-and-permissions', 'role.svg', NULL, 7, 'menu-screen', NULL, '2'),
 ('Get all roles', 'api/v1/roles', NULL, 'roles-and-permissions', NULL, 'api', 'GET', '2'),
 ('Add new role', 'api/v1/roles', NULL, 'roles-and-permissions', NULL, 'api', 'POST', '2'),
 ('Switch user role', 'api/v1/roles/switch', NULL, 'roles-and-permissions', NULL, 'api', 'POST', '2'),
