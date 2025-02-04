@@ -155,8 +155,11 @@ VALUES
 ('Update access control', 'api/v1/access-controls/:id', NULL, 'access-controls', NULL, 'api', 'PUT', '1'),
 ('Delete access control', 'api/v1/access-controls/:id', NULL, 'access-controls', NULL, 'api', 'DELETE', '1'),
 
---NEW
-('Academic Level and Period', 'academic-level-and-period', '', NULL, 1, 'menu-screen', NULL, '2')
+('Academic Structure', 'academic_structure_parent', NULL, NULL, 1, 'menu-screen', NULL, '2'),
+('Academic Structure', 'academic-structure', NULL, 'academic_structure_parent', 1, 'menu-screen', NULL, '2'),
+('Manage Level Class', 'academic-structure/manage-level-class', NULL, 'academic_structure_parent', 2, 'menu-screen', NULL, '2'),
+('Manage Period Dates', 'academic-structure/manage-period-dates', NULL, 'academic_structure_parent', 3, 'menu-screen', NULL, '2')
+
 -- end super admin
 
 ON CONFLICT DO NOTHING;
