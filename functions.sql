@@ -1455,13 +1455,13 @@ BEGIN
 
     DELETE FROM academic_periods
     WHERE school_id = _schoolId AND id = _academicPeriodId
-    RETURNING order_id INTO _deletedOrderId;
+    RETURNING sort_order INTO _deletedOrderId;
 
     IF NOT EXISTS(
         SELECT 1 FROM academic_periods
         WHERE school_id = _schoolId
             AND academic_level_id = _academicLevelId
-            AND order_id > _deletedOrderId
+            AND sort_order > _deletedOrderId
     ) THEN
         RETURN QUERY
         SELECT true, 'Period deleted successfully', NULL::TEXT;
@@ -1469,16 +1469,16 @@ BEGIN
 
 
     UPDATE academic_periods
-    SET order_id = -order_id
+    SET sort_order = -sort_order
     WHERE school_id = _schoolId
         AND academic_level_id = _academicLevelId
-        AND order_id > _deletedOrderId;    
+        AND sort_order > _deletedOrderId;    
 
     UPDATE academic_periods
-    SET order_id = ABS(order_id) - 1
+    SET sort_order = ABS(sort_order) - 1
     WHERE school_id = _schoolId
         AND academic_level_id = _academicLevelId
-        AND order_id < 0;
+        AND sort_order < 0;
     
     RETURN QUERY
     SELECT true, 'Period deleted successfully', NULL::TEXT;
