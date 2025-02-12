@@ -24,7 +24,7 @@ CREATE TABLE classes(
     id SERIAL PRIMARY KEY,
     name VARCHAR(50),
     school_id INTEGER REFERENCES schools(school_id) NOT NULL,
-    academic_level_id INTEGER REFERENCES academic_levels(id) NOT NULL,
+    academic_level_id INTEGER REFERENCES academic_levels(id) DEFAULT NULL,
     sort_order INTEGER DEFAULT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     UNIQUE(name, school_id, academic_level_id, sort_order)
