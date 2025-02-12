@@ -364,7 +364,7 @@ CREATE TABLE academic_periods(
     sort_order INTEGER DEFAULT NULL,
     start_date DATE DEFAULT NULL,
     end_date DATE DEFAULT NULL,
-    UNIQUE(school_id, academic_period_id, sort_order)
+    UNIQUE(school_id, academic_level_id, sort_order)
 );
 
 CREATE TABLE invoices(
