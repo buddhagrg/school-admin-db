@@ -17,7 +17,7 @@ VALUES
 ('Manage Level Class', 'academic/level-class', NULL, 'academic_parent', 2, 'menu-screen', NULL, '2'),
 ('Assign Period Date', 'academic/period-date', NULL, 'academic_parent', 3, 'menu-screen', NULL, '2'),
 
-('Classes & Sections', 'classes_parent', NULL, NULL, 4, 'menu-screen', NULL, '2'),
+('Classes & Sections', 'classes_parent', NULL, NULL, 3, 'menu-screen', NULL, '2'),
 ('Manage Classes', 'classes/manage', NULL, 'classes_parent', 1, 'menu-screen', NULL, '2'),
 ('Assign Teacher to Classes', 'classes/teachers', NULL, 'classes_parent', 2, 'menu-screen', NULL, '2'),
 ('Classes Edit', 'classes/edit/:id', NULL, 'classes', NULL, 'screen', NULL, '2'),
@@ -38,7 +38,7 @@ VALUES
 ('Update section detail', 'api/v1/sections/:id', NULL, 'sections', NULL, 'api', 'PUT', '2'),
 ('Delete section', 'api/v1/sections/:id', NULL, 'sections', NULL, 'api', 'DELETE', '2'),
 
-('User Management', 'user_mgmt_parent', NULL, NULL, 3, 'menu-screen', NULL, '2'),
+('User Management', 'user_mgmt_parent', NULL, NULL, 4, 'menu-screen', NULL, '2'),
 ('Add User', 'users/add', NULL, 'user_mgmt_parent', 1, 'menu-screen', NULL, '2'),
 ('Manage Users', 'users/manage', NULL, 'user_mgmt_parent', 2, 'menu-screen', NULL, '2'),
 ('Assign Roles & Permissions', 'users/role-and-permission', NULL, 'user_mgmt_parent', 3, 'menu-screen', NULL, '2'),
