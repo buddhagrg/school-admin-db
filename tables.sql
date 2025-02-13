@@ -166,7 +166,7 @@ CREATE TABLE class_teachers(
     class_id INTEGER REFERENCES classes(id) NOT NULL,
     section_id INTEGER REFERENCES sections(id) DEFAULT NULL,
     school_id INTEGER REFERENCES schools(school_id) NOT NULL,
-    UNIQUE(school_id, class_id, section_id, teacher_id)
+    UNIQUE(school_id, class_id, teacher_id)
 );
 
 CREATE TABLE notice_status(
