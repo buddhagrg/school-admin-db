@@ -19,7 +19,7 @@ VALUES
 
 ('Classes & Sections', 'classes_parent', NULL, NULL, 3, 'menu-screen', NULL, '2'),
 ('Manage Classes', 'classes/manage', NULL, 'classes_parent', 1, 'menu-screen', NULL, '2'),
-('Assign Teacher to Classes', 'classes/teachers', NULL, 'classes_parent', 2, 'menu-screen', NULL, '2'),
+('Assign Class teacher', 'classes/teachers', NULL, 'classes_parent', 2, 'menu-screen', NULL, '2'),
 ('Classes Edit', 'classes/edit/:id', NULL, 'classes', NULL, 'screen', NULL, '2'),
 ('Class Teachers Edit', 'class-teachers/edit/:id', NULL, 'class-teachers', NULL, 'screen', NULL, '2'),
 ('Section Edit', 'sections/edit/:id', NULL, 'sections', NULL, 'screen', NULL, '2'),
