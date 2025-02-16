@@ -13,8 +13,8 @@ VALUES
 ('Get dashboard data', 'api/v1/dashboard', NULL, '', NULL, 'api', 'GET', '2'),
 
 ('Academic Level & Period', 'academic_parent', NULL, NULL, 2, 'menu-screen', NULL, '2'),
-('Manage Level and Period', 'academic/manage', NULL, 'academic_parent', 1, 'menu-screen', NULL, '2'),
-('Manage Level Class', 'academic/level-class', NULL, 'academic_parent', 2, 'menu-screen', NULL, '2'),
+('Manage Levels & Periods', 'academic/manage', NULL, 'academic_parent', 1, 'menu-screen', NULL, '2'),
+('Manage Level Classes', 'academic/level-class', NULL, 'academic_parent', 2, 'menu-screen', NULL, '2'),
 ('Assign Period Date', 'academic/period-date', NULL, 'academic_parent', 3, 'menu-screen', NULL, '2'),
 
 ('Classes & Sections', 'classes_parent', NULL, NULL, 3, 'menu-screen', NULL, '2'),
@@ -67,7 +67,7 @@ VALUES
 ('Get role users', 'api/v1/roles/:id/users', NULL, 'roles-and-permissions', NULL, 'api', 'GET', '2'),
 
 ('Leave Management', 'leave_mgmt_parent', NULL, NULL, 5, 'menu-screen', NULL, '2'),
-('View & Manage Leave Category', 'leaves/manage', NULL, 'leave_mgmt_parent', 1, 'menu-screen', NULL, '2'),
+('Manage Leave Categories', 'leaves/manage', NULL, 'leave_mgmt_parent', 1, 'menu-screen', NULL, '2'),
 ('Approve/Reject Leave Request', 'leaves/review', NULL, 'leave_mgmt_parent', 2, 'menu-screen', NULL, '2'),
 ('Add leave policy', 'api/v1/leave/policies', NULL, 'leave_parent', NULL, 'api', 'POST', '2'),
 ('Get all leave policies', 'api/v1/leave/policies', NULL, 'leave_parent', NULL, 'api', 'GET', '2'),
@@ -99,7 +99,7 @@ VALUES
 
 ('Settings', 'settings_parent', NULL, NULL, 7, 'menu-screen', NULL, '2'),
 ('Configure School Setting', 'school', NULL, 'settings_parent', 1, 'menu-screen', NULL, '2'),
-('Manage departments', 'departments', NULL, 'settings_parent', 2, 'menu-screen', NULL, '2'),
+('Manage Departments', 'departments', NULL, 'settings_parent', 2, 'menu-screen', NULL, '2'),
 ('Edit Department', 'departments/edit/:id', NULL, 'departments', NULL, 'screen', NULL, '2'),
 ('Get all departments', 'api/v1/departments', NULL, 'departments', NULL, 'api', 'GET', '2'),
 ('Add new department', 'api/v1/departments', NULL, 'departments', NULL, 'api', 'POST', '2'),
