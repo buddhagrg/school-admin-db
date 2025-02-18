@@ -685,28 +685,34 @@ BEGIN
                             t1.recipient_type = 'SP'
                             AND (
                                 (
-                                    t6.static_role_id = 3
+                                    _userStaticRoleId = 3
+                                    AND t6.static_role_id = 3
                                     AND (
                                         t1.recipient_first_field IS NULL
                                         OR EXISTS (
                                             SELECT 1
                                             FROM user_profiles u
                                             JOIN users t5 ON u.user_id = t5.id
-                                            WHERE u.department_id = t1.recipient_first_field
-                                            AND t5.id = _user_id AND t5.role_id = _user_role_id
+                                            WHERE u.school_id = t1.school_id
+                                                AND u.department_id = t1.recipient_first_field
+                                                AND t5.id = _user_id
+                                                AND t5.role_id = _user_role_id
                                         )
                                     )
                                 )
                                 OR (
-                                    t6.static_role_id = 4
+                                    _userStaticRoleId = 4
+                                    AND t6.static_role_id = 4
                                     AND (
                                         t1.recipient_first_field IS NULL
                                         OR EXISTS (
                                             SELECT 1
                                             FROM user_profiles u
                                             JOIN users t5 ON u.user_id = t5.id
-                                            WHERE u.class_id = t1.recipient_first_field
-                                            AND t5.id = _user_id AND t5.role_id = _user_role_id
+                                            WHERE u.school_id = t1.school_id
+                                                AND u.class_id = t1.recipient_first_field
+                                                AND t5.id = _user_id
+                                                AND t5.role_id = _user_role_id
                                         )
                                     )
                                 )
