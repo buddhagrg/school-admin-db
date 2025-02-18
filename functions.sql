@@ -618,15 +618,32 @@ LANGUAGE plpgsql
 AS $BODY$
 DECLARE
     _user_role_id INTEGER;
+    _userStaticRoleId INTEGER;
     _user_school_id INTEGER;
 BEGIN    
     IF NOT EXISTS (SELECT 1 FROM users u WHERE u.id = _user_id) THEN
         RAISE EXCEPTION 'User does not exist';
     END IF;
 
-    SELECT school_id INTO _user_school_id FROM users u WHERE u.id = _user_id;
+    SELECT u.school_id INTO _user_school_id
+    FROM users u
+    WHERE u.id = _user_id;
     IF _user_school_id IS NULL THEN
         RAISE EXCEPTION 'School does not exist';
+    END IF;
+
+    SELECT u.role_id INTO _user_role_id
+    FROM users u
+    WHERE u.id = _user_id;
+    IF _user_role_id IS NULL THEN
+        RAISE EXCEPTION 'User role does not exist';
+    END IF;
+
+    SELECT r.static_role_id INTO _userStaticRoleId
+    FROM roles r
+    WHERE r.school_id = _user_school_id AND r.id = _user_role_id;
+    IF _userStaticRoleId IS NULL THEN
+        RAISE EXCEPTION 'User static role does not exist';
     END IF;
 
     RETURN QUERY
@@ -644,23 +661,17 @@ BEGIN
         t1.status AS "statusId",
         NULL AS "whoHasAccess"
     FROM notices t1
-    LEFT JOIN users t2 ON t1.author_id = t2.id
-    LEFT JOIN notice_status t3 ON t1.status = t3.id
+    JOIN users t2 ON t1.author_id = t2.id
+    JOIN notice_status t3 ON t1.status = t3.id
     LEFT JOIN users t4 ON t1.reviewer_id = t4.id
-    JOIN roles t6 ON t6.id = t1.recipient_role_id  
-    WHERE (
-        t6.static_role_id = 2
+    LEFT JOIN roles t6 ON t6.id = t1.recipient_role_id  
+    WHERE
+    (
+        _userStaticRoleId = 2
         AND t1.school_id = _user_school_id
-        AND (
-            t1.author_id = _user_id
-            OR (
-                t1.status != 1
-                AND t1.author_id != _user_id
-            )
-        )
     )
     OR (
-        t6.static_role_id != 2
+        _userStaticRoleId != 2
         AND t1.school_id = _user_school_id
         AND (
             t1.status != 6
