@@ -24,7 +24,7 @@ DECLARE
     _fatherName TEXT;
     _motherName TEXT;
     _emergencyPhone TEXT;
-    _systemAccess BOOLEAN;
+    _hasSystemAccess BOOLEAN;
     _reporterId INTEGER;
     _schoolId INTEGER;
 BEGIN
@@ -44,7 +44,7 @@ BEGIN
     _fatherName := COALESCE(data->>'fatherName', NULL);
     _motherName := COALESCE(data->>'motherName', NULL);
     _emergencyPhone := COALESCE(data->>'emergencyPhone', NULL);
-    _systemAccess := COALESCE((data->>'systemAccess')::BOOLEAN, NULL);
+    _hasSystemAccess := COALESCE((data->>'hasSystemAccess')::BOOLEAN, false);
     _reporterId := COALESCE((data->>'reporterId')::INTEGER, NULL);
     _schoolId := COALESCE((data->>'schoolId')::INTEGER, NULL);
 
@@ -78,13 +78,13 @@ BEGIN
             SELECT NULL::INTEGER, false, 'Email already exists', NULL::TEXT;
         END IF;
 
-        INSERT INTO users (name,email,role_id,created_date,reporter_id, school_id)
-        VALUES (_name,_email,_roleId,now(),_reporterId,_schoolId) RETURNING id INTO _userId;
+        INSERT INTO users (name, email, role_id, created_date, reporter_id, school_id, has_system_access)
+        VALUES (_name, _email, _roleId, now(), _reporterId, _schoolId, _hasSystemAccess) RETURNING id INTO _userId;
 
         INSERT INTO user_profiles
-        (user_id, gender, marital_status, phone,dob,join_date,qualification,experience,current_address,permanent_address,father_name,mother_name,emergency_phone, school_id)
+        (user_id, gender, marital_status, phone, dob, join_date, qualification, experience, current_address, permanent_address, father_name, mother_name, emergency_phone, school_id)
         VALUES
-        (_userId,_gender,_maritalStatus,_phone,_dob,_joinDate,_qualification,_experience,_currentAddress,_permanentAddress,_fatherName,_motherName,_emergencyPhone, _schoolId);
+        (_userId, _gender, _maritalStatus, _phone, _dob, _joinDate, _qualification, _experience, _currentAddress, _permanentAddress, _fatherName, _motherName, _emergencyPhone, _schoolId);
 
         RETURN QUERY
         SELECT _userId, true, 'Staff added successfully', NULL;
@@ -97,7 +97,7 @@ BEGIN
         name = _name,
         email = _email,
         role_id = _roleId,
-        is_active = _systemAccess,
+        has_system_access = _hasSystemAccess,
         reporter_id = _reporterId,
         updated_date = now()
     WHERE id = _userId AND school_id = _schoolId;
@@ -154,9 +154,9 @@ DECLARE
     _guardianName TEXT;
     _guardianPhone TEXT;
     _relationOfGuardian TEXT;
-    _systemAccess BOOLEAN;
-    _classId TEXT;
-    _sectionId TEXT;
+    _hasSystemAccess BOOLEAN;
+    _classId INTEGER;
+    _sectionId INTEGER;
     _admissionDt DATE;
     _roll INTEGER;
     _schoolId INTEGER;
@@ -176,7 +176,7 @@ BEGIN
     _guardianName := COALESCE(data->>'guardianName', NULL);
     _guardianPhone := COALESCE(data->>'guardianPhone', NULL);
     _relationOfGuardian := COALESCE(data->>'relationOfGuardian', NULL);
-    _systemAccess := COALESCE((data->>'systemAccess')::BOOLEAN, NULL);
+    _hasSystemAccess := COALESCE((data->>'hasSystemAccess')::BOOLEAN, false);
     _classId := COALESCE(data->>'class', NULL);
     _sectionId := COALESCE(data->>'section', NULL);
     _admissionDt := COALESCE((data->>'admissionDate')::DATE, NULL);
@@ -199,7 +199,7 @@ BEGIN
     SELECT teacher_id
     INTO _reporterId
     FROM class_teachers
-    WHERE class_id = _classId AND section_id = _sectionId;
+    WHERE class_id = _classId AND (section_id IS NULL OR section_id = _sectionId);
 
     IF _reporterId IS NULL THEN
         SELECT t1.id
@@ -217,13 +217,13 @@ BEGIN
             SELECT NULL::INTEGER, false, 'Email already exists', NULL::TEXT;
         END IF;
 
-        INSERT INTO users (name,email,role_id,created_date,reporter_id, school_id)
-        VALUES (_name,_email,_roleId,now(),_reporterId, _schoolId) RETURNING id INTO _userId;
+        INSERT INTO users (name, email, role_id, created_date, reporter_id, school_id, has_system_access)
+        VALUES (_name, _email, _roleId, now(), _reporterId, _schoolId, _hasSystemAccess) RETURNING id INTO _userId;
 
         INSERT INTO user_profiles
-        (user_id,gender,phone,dob,admission_date,class_id,section_id,roll,current_address,permanent_address,father_name,father_phone,mother_name,mother_phone,guardian_name,guardian_phone,relation_of_guardian, school_id)
+        (user_id, gender, phone, dob, admission_date, class_id, section_id, roll, current_address, permanent_address, father_name, father_phone, mother_name, mother_phone, guardian_name, guardian_phone, relation_of_guardian, school_id)
         VALUES
-        (_userId,_gender,_phone,_dob,_admissionDt,_classId,_sectionId,_roll,_currentAddress,_permanentAddress,_fatherName,_fatherPhone,_motherName,_motherPhone,_guardianName,_guardianPhone,_relationOfGuardian, _schoolId);
+        (_userId, _gender, _phone, _dob, _admissionDt, _classId, _sectionId, _roll, _currentAddress, _permanentAddress, _fatherName, _fatherPhone, _motherName, _motherPhone, _guardianName, _guardianPhone, _relationOfGuardian, _schoolId);
 
         INSERT INTO student_academic_record(school_id, student_id, academic_year_id, class_id, section_id, roll_number)
         VALUES(_schoolId, _userId, (SELECT id FROM academic_years WHERE is_active = TRUE AND school_id = _schoolId), _classId, _sectionId, _roll);
@@ -238,7 +238,7 @@ BEGIN
         name = _name,
         email = _email,
         role_id = _roleId,
-        is_active = _systemAccess,
+        has_system_access = _hasSystemAccess,
         updated_date = now()
     WHERE id = _userId AND school_id = _schoolId;
 
