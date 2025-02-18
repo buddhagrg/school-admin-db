@@ -81,17 +81,17 @@ CREATE TABLE users(
     email VARCHAR(100) NOT NULL,
     password VARCHAR(255) DEFAULT NULL,
     last_login TIMESTAMP DEFAULT NULL,
+    is_email_verified BOOLEAN DEFAULT false,
+    has_system_access BOOLEAN DEFAULT false,
     role_id INTEGER NOT NULL,
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_date TIMESTAMP DEFAULT NULL,
     leave_policy_id INTEGER REFERENCES leave_policies(id) DEFAULT NULL,
-    is_active BOOLEAN DEFAULT false,
     reporter_id INTEGER DEFAULT NULL,
     status_last_reviewed_date TIMESTAMP DEFAULT NULL,
     status_last_reviewer_id INTEGER REFERENCES users(id)
         ON UPDATE SET NULL
         DEFAULT NULL,
-    is_email_verified BOOLEAN DEFAULT false,
     profile_url VARCHAR(250) DEFAULT NULL,
     school_id INTEGER REFERENCES schools(school_id) NOT NULL,
     UNIQUE(email, school_id)
