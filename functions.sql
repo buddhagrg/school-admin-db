@@ -5,73 +5,72 @@ RETURNS TABLE("userId" INTEGER, status boolean, message TEXT, description TEXT)
 LANGUAGE 'plpgsql'
 AS $BODY$
 DECLARE
-    _operationType VARCHAR(10);
-
-    _userId INTEGER;
+    _operation_type VARCHAR(10);
+    _user_id INTEGER;
     _name TEXT;
-    _roleId INTEGER;
-    _staticRoleId INTEGER;
+    _role_id INTEGER;
+    _static_role_id INTEGER;
     _gender TEXT;
-    _maritalStatus TEXT;
+    _marital_status TEXT;
     _phone TEXT;
     _email TEXT;
     _dob DATE;
-    _joinDate DATE;
+    _join_date DATE;
     _qualification TEXT;
     _experience TEXT;
-    _currentAddress TEXT;
-    _permanentAddress TEXT;
-    _fatherName TEXT;
-    _motherName TEXT;
-    _emergencyPhone TEXT;
-    _hasSystemAccess BOOLEAN;
-    _reporterId INTEGER;
-    _schoolId INTEGER;
+    _current_address TEXT;
+    _permanent_address TEXT;
+    _father_name TEXT;
+    _mother_name TEXT;
+    _emergency_phone TEXT;
+    _has_system_access BOOLEAN;
+    _reporter_id INTEGER;
+    _school_id INTEGER;
 BEGIN
-    _userId := COALESCE((data ->>'userId')::INTEGER, NULL);
+    _user_id := COALESCE((data ->>'userId')::INTEGER, NULL);
     _name := COALESCE(data->>'name', NULL);
-    _roleId := COALESCE((data->>'role')::INTEGER, NULL);
+    _role_id := COALESCE((data->>'role')::INTEGER, NULL);
     _gender := COALESCE(data->>'gender', NULL);
-    _maritalStatus := COALESCE(data->>'maritalStatus', NULL);
+    _marital_status := COALESCE(data->>'maritalStatus', NULL);
     _phone := COALESCE(data->>'phone', NULL);
     _email := COALESCE(data->>'email', NULL);
     _dob := COALESCE((data->>'dob')::DATE, NULL);
-    _joinDate := COALESCE((data->>'joinDate')::DATE, NULL);
+    _join_date := COALESCE((data->>'joinDate')::DATE, NULL);
     _qualification := COALESCE(data->>'qualification', NULL);
     _experience := COALESCE(data->>'experience', NULL);
-    _currentAddress := COALESCE(data->>'currentAddress', NULL);
-    _permanentAddress := COALESCE(data->>'permanentAddress', NULL);
-    _fatherName := COALESCE(data->>'fatherName', NULL);
-    _motherName := COALESCE(data->>'motherName', NULL);
-    _emergencyPhone := COALESCE(data->>'emergencyPhone', NULL);
-    _hasSystemAccess := COALESCE((data->>'hasSystemAccess')::BOOLEAN, false);
-    _reporterId := COALESCE((data->>'reporterId')::INTEGER, NULL);
-    _schoolId := COALESCE((data->>'schoolId')::INTEGER, NULL);
+    _current_address := COALESCE(data->>'currentAddress', NULL);
+    _permanent_address := COALESCE(data->>'permanentAddress', NULL);
+    _father_name := COALESCE(data->>'fatherName', NULL);
+    _mother_name := COALESCE(data->>'motherName', NULL);
+    _emergency_phone := COALESCE(data->>'emergencyPhone', NULL);
+    _has_system_access := COALESCE((data->>'hasSystemAccess')::BOOLEAN, false);
+    _reporter_id := COALESCE((data->>'reporterId')::INTEGER, NULL);
+    _school_id := COALESCE((data->>'schoolId')::INTEGER, NULL);
 
-    IF _userId IS NULL THEN
-        _operationType := 'add';
+    IF _user_id IS NULL THEN
+        _operation_type := 'add';
     ELSE
-        _operationType := 'update';
+        _operation_type := 'update';
     END IF;
 
-    IF _schoolId IS NULL THEN
+    IF _school_id IS NULL THEN
         RETURN QUERY
         SELECT NULL::INTEGER, false, 'School Id may not be empty', NULL::TEXT;
     END IF;
 
-    IF _roleId IS NULL THEN
+    IF _role_id IS NULL THEN
         RETURN QUERY
         SELECT NULL::INTEGER, false, 'Role may not be empty', NULL::TEXT;
     END IF;
 
-    SELECT static_role_id INTO _staticRoleId FROM roles WHERE id = _roleId And school_id = _schoolId;
+    SELECT static_role_id INTO _static_role_id FROM roles WHERE id = _role_id And school_id = _school_id;
     
-    IF _staticRoleId = 4 THEN
+    IF _static_role_id = 4 THEN
         RETURN QUERY
         SELECT NULL::INTEGER, false, 'Student cannot be staff', NULL::TEXT;
     END IF;
 
-    IF NOT EXISTS(SELECT 1 FROM users WHERE id = _userId) THEN
+    IF NOT EXISTS(SELECT 1 FROM users WHERE id = _user_id) THEN
 
         IF EXISTS(SELECT 1 FROM users WHERE email = _email) THEN
             RETURN QUERY
@@ -79,15 +78,15 @@ BEGIN
         END IF;
 
         INSERT INTO users (name, email, role_id, created_date, reporter_id, school_id, has_system_access)
-        VALUES (_name, _email, _roleId, now(), _reporterId, _schoolId, _hasSystemAccess) RETURNING id INTO _userId;
+        VALUES (_name, _email, _role_id, now(), _reporter_id, _school_id, _has_system_access) RETURNING id INTO _user_id;
 
         INSERT INTO user_profiles
         (user_id, gender, marital_status, phone, dob, join_date, qualification, experience, current_address, permanent_address, father_name, mother_name, emergency_phone, school_id)
         VALUES
-        (_userId, _gender, _maritalStatus, _phone, _dob, _joinDate, _qualification, _experience, _currentAddress, _permanentAddress, _fatherName, _motherName, _emergencyPhone, _schoolId);
+        (_user_id, _gender, _marital_status, _phone, _dob, _join_date, _qualification, _experience, _current_address, _permanent_address, _father_name, _mother_name, _emergency_phone, _school_id);
 
         RETURN QUERY
-        SELECT _userId, true, 'Staff added successfully', NULL;
+        SELECT _user_id, true, 'Staff added successfully', NULL;
     END IF;
 
 
@@ -96,34 +95,34 @@ BEGIN
     SET
         name = _name,
         email = _email,
-        role_id = _roleId,
-        has_system_access = _hasSystemAccess,
-        reporter_id = _reporterId,
+        role_id = _role_id,
+        has_system_access = _has_system_access,
+        reporter_id = _reporter_id,
         updated_date = now()
-    WHERE id = _userId AND school_id = _schoolId;
+    WHERE id = _user_id AND school_id = _school_id;
 
     UPDATE user_profiles
     SET
         gender = _gender,
-        marital_status = _maritalStatus,
+        marital_status = _marital_status,
         phone = _phone,
         dob = _dob,
-        join_date = _joinDate,
+        join_date = _join_date,
         qualification = _qualification,
         experience = _experience,
-        current_address = _currentAddress,
-        permanent_address = _permanentAddress, 
-        father_name = _fatherName,
-        mother_name = _motherName,
-        emergency_phone = _emergencyPhone
-    WHERE user_id = _userId AND school_id = _schoolId;
+        current_address = _current_address,
+        permanent_address = _permanent_address, 
+        father_name = _father_name,
+        mother_name = _mother_name,
+        emergency_phone = _emergency_phone
+    WHERE user_id = _user_id AND school_id = _school_id;
 
     RETURN QUERY
-    SELECT _userId, true, 'Staff updated successfully', NULL;
+    SELECT _user_id, true, 'Staff updated successfully', NULL;
 EXCEPTION
     WHEN OTHERS THEN
         RETURN QUERY
-        SELECT _userId::INTEGER, false, 'Unable to ' || _operationType || ' staff', SQLERRM;
+        SELECT _user_id::INTEGER, false, 'Unable to ' || _operation_type || ' staff', SQLERRM;
 END;
 $BODY$;
 
@@ -135,101 +134,105 @@ RETURNS TABLE("userId" INTEGER, status boolean, message TEXT, description TEXT)
 LANGUAGE 'plpgsql'
 AS $BODY$
 DECLARE
-    _operationType VARCHAR(10);
-    _reporterId INTEGER;
+    _operation_type VARCHAR(10);
+    _reporter_id INTEGER;
 
-    _userId INTEGER;
+    _user_id INTEGER;
     _name TEXT;
-    _roleId INTEGER;
+    _role_id INTEGER;
     _gender TEXT;
     _phone TEXT;
     _email TEXT;
     _dob DATE;
-    _currentAddress TEXT;
-    _permanentAddress TEXT;
-    _fatherName TEXT;
-    _fatherPhone TEXT;
-    _motherName TEXT;
-    _motherPhone TEXT;
-    _guardianName TEXT;
-    _guardianPhone TEXT;
-    _relationOfGuardian TEXT;
-    _hasSystemAccess BOOLEAN;
-    _classId INTEGER;
-    _sectionId INTEGER;
-    _admissionDt DATE;
+    _current_address TEXT;
+    _permanent_address TEXT;
+    _father_name TEXT;
+    _father_phone TEXT;
+    _mother_name TEXT;
+    _mother_phone TEXT;
+    _guardian_name TEXT;
+    _guardian_phone TEXT;
+    _relation_of_guardian TEXT;
+    _has_system_access BOOLEAN;
+    _class_id INTEGER;
+    _section_id INTEGER;
+    _admission_date DATE;
     _roll INTEGER;
-    _schoolId INTEGER;
+    _school_id INTEGER;
 BEGIN
-    _userId := COALESCE((data ->>'userId')::INTEGER, NULL);
+    _user_id := COALESCE((data ->>'userId')::INTEGER, NULL);
     _name := COALESCE(data->>'name', NULL);
     _gender := COALESCE(data->>'gender', NULL);
     _phone := COALESCE(data->>'phone', NULL);
     _email := COALESCE(data->>'email', NULL);
     _dob := COALESCE((data->>'dob')::DATE, NULL);
-    _currentAddress := COALESCE(data->>'currentAddress', NULL);
-    _permanentAddress := COALESCE(data->>'permanentAddress', NULL);
-    _fatherName := COALESCE(data->>'fatherName', NULL);
-    _fatherPhone := COALESCE(data->>'fatherPhone', NULL);
-    _motherName := COALESCE(data->>'motherName', NULL);
-    _motherPhone := COALESCE(data->>'motherPhone', NULL);
-    _guardianName := COALESCE(data->>'guardianName', NULL);
-    _guardianPhone := COALESCE(data->>'guardianPhone', NULL);
-    _relationOfGuardian := COALESCE(data->>'relationOfGuardian', NULL);
-    _hasSystemAccess := COALESCE((data->>'hasSystemAccess')::BOOLEAN, false);
-    _classId := COALESCE(data->>'class', NULL);
-    _sectionId := COALESCE(data->>'section', NULL);
-    _admissionDt := COALESCE((data->>'admissionDate')::DATE, NULL);
+    _current_address := COALESCE(data->>'currentAddress', NULL);
+    _permanent_address := COALESCE(data->>'permanentAddress', NULL);
+    _father_name := COALESCE(data->>'fatherName', NULL);
+    _father_phone := COALESCE(data->>'fatherPhone', NULL);
+    _mother_name := COALESCE(data->>'motherName', NULL);
+    _mother_phone := COALESCE(data->>'motherPhone', NULL);
+    _guardian_name := COALESCE(data->>'guardianName', NULL);
+    _guardian_phone := COALESCE(data->>'guardianPhone', NULL);
+    _relation_of_guardian := COALESCE(data->>'relationOfGuardian', NULL);
+    _has_system_access := COALESCE((data->>'hasSystemAccess')::BOOLEAN, false);
+    _class_id := COALESCE(data->>'class', NULL);
+    _section_id := COALESCE(data->>'section', NULL);
+    _admission_date := COALESCE((data->>'admissionDate')::DATE, NULL);
     _roll := COALESCE((data->>'roll')::INTEGER, NULL);
-    _schoolId := COALESCE((data->>'schoolId')::INTEGER, NULL);
+    _school_id := COALESCE((data->>'schoolId')::INTEGER, NULL);
 
-    IF _userId IS NULL THEN
-        _operationType := 'add';
+    IF _user_id IS NULL THEN
+        _operation_type := 'add';
     ELSE
-        _operationType := 'update';
+        _operation_type := 'update';
     END IF;
 
-    IF _schoolId IS NULL THEN
+    IF _school_id IS NULL THEN
         RETURN QUERY
         SELECT NULL::INTEGER, false, 'School Id may not be empty', NULL::TEXT;
     END IF;
 
-    SELECT id INTO _roleId FROM roles WHERE school_id = _schoolId AND static_role_id = 4;
+    SELECT id INTO _role_id
+    FROM roles
+    WHERE school_id = _school_id
+        AND static_role_id = 4;
 
     SELECT teacher_id
-    INTO _reporterId
+    INTO _reporter_id
     FROM class_teachers
-    WHERE class_id = _classId AND (section_id IS NULL OR section_id = _sectionId);
+    WHERE class_id = _class_id
+        AND (section_id IS NULL OR section_id = _section_id);
 
-    IF _reporterId IS NULL THEN
+    IF _reporter_id IS NULL THEN
         SELECT t1.id
-        INTO _reporterId
+        INTO _reporter_id
         FROM users t1
         JOIN roles t2 ON t2.id = t1.role_id
-        WHERE t2.static_role_id = 2 AND t2.school_id = _schoolId
+        WHERE t2.static_role_id = 2 AND t2.school_id = _school_id
         ORDER BY id ASC
         LIMIT 1;
     END IF;
 
-    IF NOT EXISTS(SELECT 1 FROM users WHERE id = _userId) THEN
+    IF NOT EXISTS(SELECT 1 FROM users WHERE id = _user_id) THEN
         IF EXISTS(SELECT 1 FROM users WHERE email = _email) THEN
             RETURN QUERY
             SELECT NULL::INTEGER, false, 'Email already exists', NULL::TEXT;
         END IF;
 
         INSERT INTO users (name, email, role_id, created_date, reporter_id, school_id, has_system_access)
-        VALUES (_name, _email, _roleId, now(), _reporterId, _schoolId, _hasSystemAccess) RETURNING id INTO _userId;
+        VALUES (_name, _email, _role_id, now(), _reporter_id, _school_id, _has_system_access) RETURNING id INTO _user_id;
 
         INSERT INTO user_profiles
         (user_id, gender, phone, dob, admission_date, class_id, section_id, roll, current_address, permanent_address, father_name, father_phone, mother_name, mother_phone, guardian_name, guardian_phone, relation_of_guardian, school_id)
         VALUES
-        (_userId, _gender, _phone, _dob, _admissionDt, _classId, _sectionId, _roll, _currentAddress, _permanentAddress, _fatherName, _fatherPhone, _motherName, _motherPhone, _guardianName, _guardianPhone, _relationOfGuardian, _schoolId);
+        (_user_id, _gender, _phone, _dob, _admission_date, _class_id, _section_id, _roll, _current_address, _permanent_address, _father_name, _father_phone, _mother_name, _mother_phone, _guardian_name, _guardian_phone, _relation_of_guardian, _school_id);
 
         INSERT INTO student_academic_record(school_id, student_id, academic_year_id, class_id, section_id, roll_number)
-        VALUES(_schoolId, _userId, (SELECT id FROM academic_years WHERE is_active = TRUE AND school_id = _schoolId), _classId, _sectionId, _roll);
+        VALUES(_school_id, _user_id, (SELECT id FROM academic_years WHERE is_active = TRUE AND school_id = _school_id), _class_id, _section_id, _roll);
 
         RETURN QUERY
-        SELECT _userId, true, 'Student added successfully', NULL;
+        SELECT _user_id, true, 'Student added successfully', NULL;
     END IF;
 
     --update user tables
@@ -237,37 +240,37 @@ BEGIN
     SET
         name = _name,
         email = _email,
-        role_id = _roleId,
-        has_system_access = _hasSystemAccess,
+        role_id = _role_id,
+        has_system_access = _has_system_access,
         updated_date = now()
-    WHERE id = _userId AND school_id = _schoolId;
+    WHERE id = _user_id AND school_id = _school_id;
 
     UPDATE user_profiles
     SET
         gender = _gender,
         phone = _phone,
         dob = _dob,
-        admission_date = _admissionDt,
-        class_id = _classId,
-        section_id  =_sectionId,
+        admission_date = _admission_date,
+        class_id = _class_id,
+        section_id  =_section_id,
         roll = _roll,
-        current_address = _currentAddress,
-        permanent_address = _permanentAddress, 
-        father_name = _fatherName,
-        father_phone = _fatherPhone,
-        mother_name = _motherName,
-        mother_phone = _motherPhone,
-        guardian_name = _guardianName,
-        guardian_phone = _guardianPhone,
-        relation_of_guardian = _relationOfGuardian
-    WHERE user_id = _userId AND school_id = _schoolId;
+        current_address = _current_address,
+        permanent_address = _permanent_address, 
+        father_name = _father_name,
+        father_phone = _father_phone,
+        mother_name = _mother_name,
+        mother_phone = _mother_phone,
+        guardian_name = _guardian_name,
+        guardian_phone = _guardian_phone,
+        relation_of_guardian = _relation_of_guardian
+    WHERE user_id = _user_id AND school_id = _school_id;
 
     RETURN QUERY
-    SELECT _userId, true , 'Student updated successfully', NULL;
+    SELECT _user_id, true , 'Student updated successfully', NULL;
 EXCEPTION
     WHEN OTHERS THEN
         RETURN QUERY
-        SELECT NULL::INTEGER, false, 'Unable to ' || _operationType || ' student', SQLERRM;
+        SELECT NULL::INTEGER, false, 'Unable to ' || _operation_type || ' student', SQLERRM;
 END;
 $BODY$;
 
@@ -297,10 +300,10 @@ DECLARE
     _parent_value_comparison INTEGER;
     _parent_perc_comparison FLOAT;
 
-    _notices_data JSONB;
-    _leave_policies_data JSONB;
-    _leave_histories_data JSONB;
-    _celebrations_data JSONB;
+    _notice_data JSONB;
+    _leave_policy_data JSONB;
+    _leave_history_data JSONB;
+    _celebration_data JSONB;
     _one_month_leave_data JSONB;
 
     _filter_verified_notice boolean DEFAULT true;
@@ -413,7 +416,7 @@ BEGIN
 
     -- get notices
     SELECT COALESCE(JSON_AGG(row_to_json(t)), '[]'::json)
-    INTO _notices_data
+    INTO _notice_data
     FROM (
         SELECT *
         FROM get_notices(_user_id, _filter_verified_notice) AS t
@@ -439,7 +442,7 @@ BEGIN
         GROUP BY t2.id, t2.name
     )
     SELECT COALESCE(JSON_AGG(row_to_json(t)), '[]'::json)
-    INTO _leave_policies_data
+    INTO _leave_policy_data
     FROM _leave_policies_query AS t;
 
 
@@ -476,7 +479,7 @@ BEGIN
         LIMIT 5
     )
     SELECT COALESCE(JSON_AGG(row_to_json(t)), '[]'::json)
-    INTO _leave_histories_data
+    INTO _leave_history_data
     FROM _leave_history_query AS t;
 
 
@@ -543,7 +546,7 @@ BEGIN
         )
     )
     SELECT COALESCE(JSON_AGG(row_to_json(t) ORDER BY TO_CHAR(t."eventDate", 'MM-DD') ), '[]'::json)
-    INTO _celebrations_data
+    INTO _celebration_data
     FROM _celebrations AS t LIMIT 5;
 
     --who is out this week
@@ -589,10 +592,10 @@ BEGIN
             'totalNumberPercInComparisonFromPrevYear', _parent_perc_comparison,
             'totalNumberValueInComparisonFromPrevYear', _parent_value_comparison
         ),
-        'notices', _notices_data,
-        'leavePolicies', _leave_policies_data,
-        'leaveHistory', _leave_histories_data,
-        'celebrations', _celebrations_data,
+        'notices', _notice_data,
+        'leavePolicies', _leave_policy_data,
+        'leaveHistory', _leave_history_data,
+        'celebrations', _celebration_data,
         'oneMonthLeave', _one_month_leave_data
     );
 END;
@@ -620,7 +623,7 @@ LANGUAGE plpgsql
 AS $BODY$
 DECLARE
     _user_role_id INTEGER;
-    _userStaticRoleId INTEGER;
+    _user_static_roleId INTEGER;
     _user_school_id INTEGER;
 BEGIN    
     IF NOT EXISTS (SELECT 1 FROM users u WHERE u.id = _user_id) THEN
@@ -641,10 +644,10 @@ BEGIN
         RAISE EXCEPTION 'User role does not exist';
     END IF;
 
-    SELECT r.static_role_id INTO _userStaticRoleId
+    SELECT r.static_role_id INTO _user_static_roleId
     FROM roles r
     WHERE r.school_id = _user_school_id AND r.id = _user_role_id;
-    IF _userStaticRoleId IS NULL THEN
+    IF _user_static_roleId IS NULL THEN
         RAISE EXCEPTION 'User static role does not exist';
     END IF;
 
@@ -687,7 +690,7 @@ BEGIN
     LEFT JOIN classes t8 ON t8.id = t1.recipient_first_field
     WHERE
     (
-        _userStaticRoleId = 2
+        _user_static_roleId = 2
         AND t1.school_id = _user_school_id
         AND (
             _filter_verified_notice = false
@@ -695,7 +698,7 @@ BEGIN
         )
     )
     OR (
-        _userStaticRoleId != 2
+        _user_static_roleId != 2
         AND t1.school_id = _user_school_id
         AND (
             t1.status != 6
@@ -709,7 +712,7 @@ BEGIN
                             t1.recipient_type = 'SP'
                             AND (
                                 (
-                                    _userStaticRoleId = 3
+                                    _user_static_roleId = 3
                                     AND t6.static_role_id = 3
                                     AND (
                                         t1.recipient_first_field IS NULL
@@ -725,7 +728,7 @@ BEGIN
                                     )
                                 )
                                 OR (
-                                    _userStaticRoleId = 4
+                                    _user_static_roleId = 4
                                     AND t6.static_role_id = 4
                                     AND (
                                         t1.recipient_first_field IS NULL
@@ -760,38 +763,38 @@ LANGUAGE 'plpgsql'
 AS $BODY$
 DECLARE
     _type CHAR(1) DEFAULT 'S';
-    _operationType CHAR(1);
-    _operationTypeDescription VARCHAR(5);
-    _schoolId INTEGER;
-    _classId INTEGER;
-    _sectionId INTEGER;
-    _examId INTEGER;
-    _examDetails JSONB;
+    _operation_type CHAR(1);
+    _operation_type_description VARCHAR(5);
+    _school_id INTEGER;
+    _class_id INTEGER;
+    _section_id INTEGER;
+    _exam_id INTEGER;
+    _exam_details JSONB;
     _exam JSONB;
 BEGIN
-    _operationType := (data->>'action')::CHAR(1);
-    _schoolId := (data->>'schoolId')::INTEGER;
-    _classId := (data->>'classId')::INTEGER;
-    _sectionId := (data->>'sectionId')::INTEGER;
-    _examId := (data->>'examId')::INTEGER;
-    _examDetails := (data->>'examDetails')::JSONB;
+    _operation_type := (data->>'action')::CHAR(1);
+    _school_id := (data->>'schoolId')::INTEGER;
+    _class_id := (data->>'classId')::INTEGER;
+    _section_id := (data->>'sectionId')::INTEGER;
+    _exam_id := (data->>'examId')::INTEGER;
+    _exam_details := (data->>'examDetails')::JSONB;
 
-    IF NOT EXISTS(SELECT 1 FROM exams WHERE id = _examId) THEN
+    IF NOT EXISTS(SELECT 1 FROM exams WHERE id = _exam_id) THEN
         RETURN QUERY
         SELECT false, 'Exam does not exist', NULL::TEXT;
     END IF;
 
-    IF _operationType = 'a' THEN
-        _operationTypeDescription = 'add';
+    IF _operation_type = 'a' THEN
+        _operation_type_description = 'add';
 
-        FOR _exam IN SELECT * FROM jsonb_array_elements(_examDetails)
+        FOR _exam IN SELECT * FROM jsonb_array_elements(_exam_details)
         LOOP
             IF NOT EXISTS(
                 SELECT 1 FROM subjects
                 WHERE id = (_exam->>'subjectId')::INTEGER
-                    AND school_id = _schoolId
-                    AND class_id = _classId
-                    AND (_sectionId IS NULL OR section_id = _sectionId)
+                    AND school_id = _school_id
+                    AND class_id = _class_id
+                    AND (_section_id IS NULL OR section_id = _section_id)
             )THEN
                 RAISE NOTICE 'Skipping entry: % (subject Id does not belong to the class/section)', _exam;
                 CONTINUE;
@@ -813,12 +816,12 @@ BEGIN
                 practical_passing_marks
             )
             VALUES (
-                _schoolId::INT,
-                _classId::INT,
-                _sectionId::INT,
+                _school_id::INT,
+                _class_id::INT,
+                _section_id::INT,
                 _type,
-                _examId::INT,
-                _examId || '_child',
+                _exam_id::INT,
+                _exam_id || '_child',
                 (_exam->>'subjectId')::INT,
                 (_exam->>'examDate')::DATE,
                 (_exam->>'startTime')::TIME,
@@ -832,18 +835,18 @@ BEGIN
         RETURN QUERY
         SELECT true, 'Exam detail added successsfully', NULL::TEXT;
     ELSE
-        _operationTypeDescription = 'update';
+        _operation_type_description = 'update';
 
-        FOR _exam IN SELECT * FROM jsonb_array_elements(_examDetails)
+        FOR _exam IN SELECT * FROM jsonb_array_elements(_exam_details)
         LOOP
             IF NOT EXISTS(
                 SELECT 1 FROM exams
                 WHERE id = (_exam->>'id')::INT
-                    AND school_id = _schoolId                
-                    AND class_id = _classId
-                    AND (_sectionId IS NULL OR section_id = _sectionId)
+                    AND school_id = _school_id                
+                    AND class_id = _class_id
+                    AND (_section_id IS NULL OR section_id = _section_id)
                     AND type = _type
-                    AND parent_exam_id = _examId
+                    AND parent_exam_id = _exam_id
             ) THEN
                 RAISE NOTICE 'Skipping entry: % (Invalid exam details)', _exam;
                 CONTINUE;
@@ -856,7 +859,7 @@ BEGIN
                 total_marks = (_exam->>'totalMarks')::NUMERIC(5 ,2),
                 theory_passing_marks = (_exam->>'theoryPassingMarks')::NUMERIC(5 ,2),
                 practical_passing_marks = (_exam->>'practicalPassingMarks')::NUMERIC(5 ,2)
-            WHERE school_id = _schoolId AND id = (_exam->>'id')::INT;
+            WHERE school_id = _school_id AND id = (_exam->>'id')::INT;
         END LOOP;
 
         RETURN QUERY
@@ -865,7 +868,7 @@ BEGIN
 EXCEPTION
     WHEN OTHERS THEN
         RETURN QUERY
-        SELECT false, 'Unable to ' || _operationTypeDescription || ' exam detail', SQLERRM;
+        SELECT false, 'Unable to ' || _operation_type_description || ' exam detail', SQLERRM;
 END;
 $BODY$;
 
@@ -878,52 +881,52 @@ LANGUAGE 'plpgsql'
 AS $BODY$
 DECLARE
     _type CHAR(1) DEFAULT 'S';
-    _operationType CHAR(1);
-    _operationTypeDescription VARCHAR(5);
-    _schoolId INTEGER;
-    _classId INTEGER;
-    _sectionId INTEGER;
-    _examId INTEGER;
-    _markDetails JSONB;
-    _totalMarksObtained NUMERIC(5, 2);
-    _gradePoint NUMERIC(5, 2);
+    _operation_type CHAR(1);
+    _operation_type_description VARCHAR(5);
+    _school_id INTEGER;
+    _class_id INTEGER;
+    _section_id INTEGER;
+    _exam_id INTEGER;
+    _mark_details JSONB;
+    _total_marks_obtained NUMERIC(5, 2);
+    _grade_point NUMERIC(5, 2);
     _mark JSONB;
-    _subjectTotalMarksForGivenExam NUMERIC(5, 2);
-    _activeAcademicYearId INTEGER;
+    _subject_total_marks_for_given_exam NUMERIC(5, 2);
+    _active_academic_year_id INTEGER;
 BEGIN
-    _operationType := (data->>'action')::CHAR(1);
-    _schoolId := (data->>'schoolId')::INTEGER;
-    _classId := (data->>'classId')::INTEGER;
-    _sectionId := (data->>'sectionId')::INTEGER;
-    _examId := (data->>'examId')::INTEGER;
-    _markDetails := (data->>'markDetails')::JSONB;
+    _operation_type := (data->>'action')::CHAR(1);
+    _school_id := (data->>'schoolId')::INTEGER;
+    _class_id := (data->>'classId')::INTEGER;
+    _section_id := (data->>'sectionId')::INTEGER;
+    _exam_id := (data->>'examId')::INTEGER;
+    _mark_details := (data->>'markDetails')::JSONB;
 
     SELECT id
-    INTO _activeAcademicYearId
+    INTO _active_academic_year_id
     FROM academic_years
-    WHERE school_id = _schoolId AND is_active = true;
+    WHERE school_id = _school_id AND is_active = true;
 
-    IF _activeAcademicYearId IS NULL THEN
+    IF _active_academic_year_id IS NULL THEN
         RETURN QUERY
         SELECT false, "Denied. Academic year is not setup properly.", NULL::TEXT;
     END IF;
 
-    IF NOT EXISTS(SELECT 1 FROM exams WHERE id = _examId) THEN
+    IF NOT EXISTS(SELECT 1 FROM exams WHERE id = _exam_id) THEN
         RETURN QUERY
         SELECT false, 'Exam does not exist', NULL::TEXT;
     END IF;
 
-    IF _operationType = 'a' THEN
-        _operationTypeDescription = 'add';
+    IF _operation_type = 'a' THEN
+        _operation_type_description = 'add';
 
-        FOR _mark IN SELECT * FROM jsonb_array_elements(_markDetails)
+        FOR _mark IN SELECT * FROM jsonb_array_elements(_mark_details)
         LOOP
             IF NOT EXISTS(
                 SELECT 1 FROM users
                 WHERE id = (_mark->>'userId')::INTEGER
-                    AND school_id = _schoolId
-                    AND class_id = _classId
-                    AND (_sectionId IS NULL OR section_id = _sectionId)
+                    AND school_id = _school_id
+                    AND class_id = _class_id
+                    AND (_section_id IS NULL OR section_id = _section_id)
             )THEN
                 RAISE NOTICE 'Skipping entry: % (User does not exist)', _mark;
                 CONTINUE;
@@ -932,25 +935,25 @@ BEGIN
             IF NOT EXISTS(
                 SELECT 1 FROM subjects
                 WHERE id = (_mark->>'subjectId')::INTEGER
-                    AND school_id = _schoolId
-                    AND class_id = _classId
-                    AND (_sectionId IS NULL OR section_id = _sectionId)
+                    AND school_id = _school_id
+                    AND class_id = _class_id
+                    AND (_section_id IS NULL OR section_id = _section_id)
             )THEN
                 RAISE NOTICE 'Skipping entry: % (subjectId does not belong to the class/section)', _mark;
                 CONTINUE;
             END IF;
 
-            _totalMarksObtained := (_mark->>'theoryMarksObtained')::NUMERIC(5, 2) + (_mark->>'practicalMarksObtained')::NUMERIC(5, 2);
+            _total_marks_obtained := (_mark->>'theoryMarksObtained')::NUMERIC(5, 2) + (_mark->>'practicalMarksObtained')::NUMERIC(5, 2);
 
             SELECT COALESCE(total_marks, 0)
-            INTO _subjectTotalMarksForGivenExam
+            INTO _subject_total_marks_for_given_exam
             FROM exams
             WHERE type = _type
-                AND school_id = _schoolId
-                AND parent_exam_id = _examId
+                AND school_id = _school_id
+                AND parent_exam_id = _exam_id
                 AND subject_id = (_mark->>'subjectId')::INT;
 
-            _gradePoint := (_totalMarksObtained / _subjectTotalMarksForGivenExam ) * 4;
+            _grade_point := (_total_marks_obtained / _subject_total_marks_for_given_exam ) * 4;
 
             INSERT INTO marks(
                 school_id,
@@ -966,54 +969,54 @@ BEGIN
                 grade
             )
             VALUES (
-                _schoolId::INT,
-                _activeAcademicYearId,
-                _classId::INT,
-                _sectionId::INT,
-                _examId::INT,
+                _school_id::INT,
+                _active_academic_year_id,
+                _class_id::INT,
+                _section_id::INT,
+                _exam_id::INT,
                 (_mark->>'userId')::INT,
                 (_mark->>'subjectId')::DATE,
                 (_mark->>'theoryMarksObtained')::NUMERIC(5, 2),
                 (_mark->>'practicalMarksObtained')::NUMERIC(5, 2),
-                _totalMarksObtained,
-                _gradePoint
+                _total_marks_obtained,
+                _grade_point
             );
         END LOOP;
         
         RETURN QUERY
         SELECT true, 'Mark detail added successsfully', NULL::TEXT;
     ELSE
-        _operationTypeDescription = 'update';
+        _operation_type_description = 'update';
 
-        FOR _mark IN SELECT * FROM jsonb_array_elements(_markDetails)
+        FOR _mark IN SELECT * FROM jsonb_array_elements(_mark_details)
         LOOP
             IF NOT EXISTS(
                 SELECT 1 FROM users
                 WHERE id = (_mark->>'userId')::INTEGER
-                    AND school_id = _schoolId
-                    AND class_id = _classId
-                    AND (_sectionId IS NULL OR section_id = _sectionId)
+                    AND school_id = _school_id
+                    AND class_id = _class_id
+                    AND (_section_id IS NULL OR section_id = _section_id)
             )THEN
                 RAISE NOTICE 'Skipping entry: % (User does not exist)', _mark;
                 CONTINUE;
             END IF;
 
-            _totalMarksObtained := (_mark->>'theoryMarksObtained')::NUMERIC(5, 2) + (_mark->>'practicalMarksObtained')::NUMERIC(5, 2);
+            _total_marks_obtained := (_mark->>'theoryMarksObtained')::NUMERIC(5, 2) + (_mark->>'practicalMarksObtained')::NUMERIC(5, 2);
 
             SELECT COALESCE(total_marks, 0)
-            INTO _subjectTotalMarksForGivenExam
+            INTO _subject_total_marks_for_given_exam
             FROM exams
             WHERE id = (_mark->>'id')::INT;
 
-            _gradePoint := (_totalMarksObtained / _subjectTotalMarksForGivenExam ) * 4;
+            _grade_point := (_total_marks_obtained / _subject_total_marks_for_given_exam ) * 4;
 
             UPDATE marks
             SET theory_marks_obtained = (_mark->>'theoryMarksObtained')::NUMERIC(5, 2),
                 practical_marks_obtained = (_mark->>'practicalMarksObtained')::NUMERIC(5, 2),
-                total_marks_obtained = _totalMarksObtained,
-                grade = _gradePoint,
+                total_marks_obtained = _total_marks_obtained,
+                grade = _grade_point,
                 updated_date = NOW()
-            WHERE id = (_mark->>'id')::INT AND school_id = _schoolId;
+            WHERE id = (_mark->>'id')::INT AND school_id = _school_id;
         END LOOP;
 
         RETURN QUERY
@@ -1022,7 +1025,7 @@ BEGIN
 EXCEPTION
     WHEN OTHERS THEN
         RETURN QUERY
-        SELECT false, 'Unable to ' || _operationTypeDescription || ' mark detail', SQLERRM;
+        SELECT false, 'Unable to ' || _operation_type_description || ' mark detail', SQLERRM;
 END;
 $BODY$;
 
@@ -1051,77 +1054,75 @@ RETURNS TABLE(status boolean, message TEXT, description TEXT)
 LANGUAGE 'plpgsql'
 AS $BODY$
 DECLARE
-    _schoolId INTEGER;
+    _school_id INTEGER;
     _initiator INT;
     _invoices JSONB;
-    _discountAmt NUMERIC(10, 2);
-    _invoiceUserId INTEGER;
+    _invoice_user_id INTEGER;
     _items JSONB;
-    _newInvoiceNumber JSONB;
-    _newInvoiceId INTEGER;
-    _invoiceItemId INTEGER;
-    _invoiceAmount NUMERIC(10, 2) DEFAULT 0;
-    _invoiceOutstandingAmt NUMERIC(10, 2) DEFAULT 0;
-    _invoiceDiscount NUMERIC(10, 2) DEFAULT 0;
-    _invoiceItemFeeStructureId INTEGER;
-    _invoiceItemFeeAmt NUMERIC(10, 2) DEFAULT 0;
-    _invoiceItemDiscountAmt NUMERIC(10, 2) DEFAULT 0;
+    _new_invoice_number JSONB;
+    _new_invoice_id INTEGER;
+    _invoice_amount NUMERIC(10, 2) DEFAULT 0;
+    _invoice_outstanding_amount NUMERIC(10, 2) DEFAULT 0;
+    _invoice_discount NUMERIC(10, 2) DEFAULT 0;
+    _invoice_item_fee_structure_id INTEGER;
+    _invoice_item_fee_amount NUMERIC(10, 2) DEFAULT 0;
+    _invoice_item_discount_amount NUMERIC(10, 2) DEFAULT 0;
     _invoice JSONB;
     _item JSONB;
-    _activeAcademicYearId INTEGER;
-    _activeFiscalYearId INTEGER;
-    _academicPeriodId INTEGER;
-    _maxPeriodId INTEGER;
-    _maxPeriodInvoiceStatus VARCHAR(15);
+    _active_academic_year_id INTEGER;
+    _active_fiscal_year_id INTEGER;
+    _academic_period_id INTEGER;
+    _max_period_id INTEGER;
+    _max_period_invoice_status VARCHAR(15);
 BEGIN
-    _schoolId := (payload->>'schoolId')::INT;
+    _school_id := (payload->>'schoolId')::INT;
     _invoices := (payload->>'action')::JSONB;
     _initiator := (payload->>'initiator')::JSONB;
-    _academicPeriodId := (payload->>'academicPeriodId')::JSONB;
+    _academic_period_id := (payload->>'academicPeriodId')::JSONB;
 
     SELECT id
-    INTO _activeFiscalYearId
+    INTO _active_fiscal_year_id
     FROM fiscal_years
-    WHERE school_id = _schoolId AND is_active = true;
+    WHERE school_id = _school_id AND is_active = true;
 
     SELECT id
-    INTO _activeAcademicYearId
+    INTO _active_academic_year_id
     FROM academic_years
-    WHERE school_id = _schoolId AND is_active = true;
+    WHERE school_id = _school_id AND is_active = true;
 
-    IF _activeFiscalYearId IS NULL OR _activeAcademicYearId IS NULL THEN
+    IF _active_fiscal_year_id IS NULL OR _active_academic_year_id IS NULL THEN
         RETURN QUERY
         SELECT false, 'Denied. Either Fiscal year or Academic year is not setup properly.', NULL::TEXT;
     END IF;
 
     FOR _invoice IN (SELECT * FROM _invoices)
     LOOP
-        _invoiceUserId := _invoice->>'userId';
+        _invoice_user_id := _invoice->>'userId';
         _items := _invoice->>'items';
 
         -- validate user existence
-        IF NOT EXISTS(SELECT 1 FROM users WHERE id = _invoiceUserId AND school_id = _schoolId) THEN
-            RAISE NOTICE 'Invalid user_id (%) for invoice', _invoiceUserId;
+        IF NOT EXISTS(SELECT 1 FROM users WHERE id = _invoice_user_id AND school_id = _school_id) THEN
+            RAISE NOTICE 'Invalid user_id (%) for invoice', _invoice_user_id;
             CONTINUE;
         END IF;
 
         SELECT COALESCE(academic_period_id, 0), status
-        INTO _maxPeriodId, _maxPeriodInvoiceStatus
+        INTO _max_period_id, _max_period_invoice_status
         FROM invoices
-        WHERE school_id = _schoolId
-            AND user_id = _invoiceUserId
-            AND academic_year_id = _activeAcademicYearId
+        WHERE school_id = _school_id
+            AND user_id = _invoice_user_id
+            AND academic_year_id = _active_academic_year_id
         ORDER BY academic_period_id DESC
         LIMIT 1;
 
-        IF (_academicPeriodId < _maxPeriodId) OR
-            (_academicPeriodId = _maxPeriodId AND _maxPeriodInvoiceStatus != 'CANCELLED')
+        IF (_academic_period_id < _max_period_id) OR
+            (_academic_period_id = _max_period_id AND _max_period_invoice_status != 'CANCELLED')
         THEN
             RAISE NOTICE 'Denied. Invoice already generated for given period.';
             CONTINUE;
         END IF;
 
-        IF _maxPeriodId - _academicPeriodId != 1 THEN
+        IF _max_period_id - _academic_period_id != 1 THEN
             RAISE NOTICE 'Denied. Invoice generation period gap can not be more than one.';
             CONTINUE;
         END IF;
@@ -1138,22 +1139,22 @@ BEGIN
             due_date,
             status
         ) VALUES(
-            _schoolId,
-            _activeAcademicYearId,
-            _activeFiscalYearId,
-            _academicPeriodId,
+            _school_id,
+            _active_academic_year_id,
+            _active_fiscal_year_id,
+            _academic_period_id,
             _initiator,
             _invoice->>'description',
-            _invoiceUserId,
+            _invoice_user_id,
             _invoice->>'dueDate',
             'ISSUED'
-        ) RETURNING id INTO _newInvoiceId;
+        ) RETURNING id INTO _new_invoice_id;
 
         -- insert invoice items
         FOR _item IN (SELECT * FROM _items)
         LOOP
             SELECT fee_structure_id, amount, discounted_amt
-            INTO _invoiceItemFeeStructureId, _invoiceItemFeeAmt, _invoiceDiscount
+            INTO _invoice_item_fee_structure_id, _invoice_item_fee_amount, _invoice_discount
             FROM student_fees
             WHERE id = (_item->>'studentFeeId');
 
@@ -1168,44 +1169,44 @@ BEGIN
                 total_amount,
                 total_discount
             ) VALUES(
-                _schoolId,
-                _newInvoiceId,
-                _invoiceItemFeeStructureId,
+                _school_id,
+                _new_invoice_id,
+                _invoice_item_fee_structure_id,
                 _item->>'studentFeeId',
                 _item->>'description',
-                _invoiceItemFeeAmt,
+                _invoice_item_fee_amount,
                 _item->>'quantity',
-                (_item->>'quantity') * _invoiceItemFeeAmt - _invoiceItemDiscountAmt,
-                _invoiceItemDiscountAmt * (_item->>'quantity')::INTEGER
+                (_item->>'quantity') * _invoice_item_fee_amount - _invoice_item_discount_amount,
+                _invoice_item_discount_amount * (_item->>'quantity')::INTEGER
             );
         END LOOP;
 
         -- generate invoice number
-        _newInvoiceNumber := CONCAT(
+        _new_invoice_number := CONCAT(
             'INV-',
             TO_CHAR(CURRENT_DATE, 'YYYYMM'),
-            '-', _newInvoiceId,
-            '-', _schoolId
+            '-', _new_invoice_id,
+            '-', _school_id
         );
 
         SELECT COALESCE(SUM(total_amount), 0)
         FROM invoice_items
-        WHERE invoice_id = _newInvoiceId
-        INTO _invoiceAmount;
+        WHERE invoice_id = _new_invoice_id
+        INTO _invoice_amount;
 
         SELECT COALESCE(SUM(total_discount), 0)
         FROM invoice_items
-        WHERE invoice_id = _newInvoiceId
-        INTO _invoiceDiscount;
+        WHERE invoice_id = _new_invoice_id
+        INTO _invoice_discount;
 
-        _invoiceOutstandingAmt := _invoiceAmount - _invoiceDiscount;
+        _invoice_outstanding_amount := _invoice_amount - _invoice_discount;
 
         -- update invoice number and amount
         UPDATE invoices SET
-            invoice_number = _newInvoiceNumber,
-            amount = _invoiceOutstandingAmt,
-            outstanding_amt = _invoiceOutstandingAmt
-        WHERE id = _newInvoiceId;
+            invoice_number = _new_invoice_number,
+            amount = _invoice_outstanding_amount,
+            outstanding_amt = _invoice_outstanding_amount
+        WHERE id = _new_invoice_id;
     END LOOP;
 
     RETURN QUERY
@@ -1225,85 +1226,85 @@ RETURNS TABLE (status boolean, message TEXT, description TEXT)
 LANGUAGE 'plpgsql'
 AS $BODY$
 DECLARE
-    _schoolId INTEGER;
-    _invoiceId INTEGER;
-    _paymentAmount NUMERIC(10, 2) DEFAULT 0;
-    _invoiceStatus VARCHAR(15);
-    _invoiceOutstandingAmt NUMERIC(10, 2);
-    _creditAmt NUMERIC(10, 2);
-    _finalOutstandingAmt NUMERIC(10, 2);
-    _finalInvoiceStatus VARCHAR(15);
-    _invoiceUserId INTEGER;
+    _school_id INTEGER;
+    _invoice_id INTEGER;
+    _payment_amount NUMERIC(10, 2) DEFAULT 0;
+    _invoice_status VARCHAR(15);
+    _invoice_outstanding_amount NUMERIC(10, 2);
+    _credit_amount NUMERIC(10, 2);
+    _final_outstanding_amount NUMERIC(10, 2);
+    _final_invoice_status VARCHAR(15);
+    _invoice_user_id INTEGER;
     _initiator INTEGER;
-    _paymentMethod INTEGER;
-    _activeFiscalYearId INTEGER;
-    _activeAcademicYearId INTEGER;
+    _payment_method INTEGER;
+    _active_fiscal_year_id INTEGER;
+    _active_academic_year_id INTEGER;
 BEGIN
-    _schoolId := (payload->>'schoolId');
-    _invoiceId := (payload->>'invoiceId');
-    _paymentAmount := (payload->>'paymentAmount')::NUMERIC(10, 2);
+    _school_id := (payload->>'schoolId');
+    _invoice_id := (payload->>'invoiceId');
+    _payment_amount := (payload->>'paymentAmount')::NUMERIC(10, 2);
     _initiator := (payload->>'initiator');
-    _paymentMethod := (payload->>'paymentMethod');
+    _payment_method := (payload->>'paymentMethod');
 
     SELECT id
-    INTO _activeFiscalYearId
+    INTO _active_fiscal_year_id
     FROM fiscal_years
-    WHERE school_id = _schoolId AND is_active = true;
+    WHERE school_id = _school_id AND is_active = true;
 
     SELECT id
-    INTO _activeAcademicYearId
+    INTO _active_academic_year_id
     FROM academic_years
-    WHERE school_id = _schoolId AND is_active = true;
+    WHERE school_id = _school_id AND is_active = true;
 
-    IF _activeFiscalYearId IS NULL OR _activeAcademicYearId IS NULL THEN
+    IF _active_fiscal_year_id IS NULL OR _active_academic_year_id IS NULL THEN
         RETURN QUERY
         SELECT false, 'Denied. Either Fiscal year or Academic year is not setup properly.', NULL::TEXT;
     END IF;
 
-    IF NOT EXISTS(SELECT 1 FROM invoices WHERE school_id = _schoolId AND id = _invoiceId) THEN
+    IF NOT EXISTS(SELECT 1 FROM invoices WHERE school_id = _school_id AND id = _invoice_id) THEN
         RETURN QUERY
         SELECT false, 'Invoice does not exist', NULL::TEXT;
     END IF;
 
     SELECT COALESCE(outstanding_amt, 0), user_id, status
-    INTO _invoiceOutstandingAmt, _invoiceUserId, _invoiceStatus
-    FROM invoices WHERE id = _invoiceId;
+    INTO _invoice_outstanding_amount, _invoice_user_id, _invoice_status
+    FROM invoices WHERE id = _invoice_id;
 
-    IF _invoiceStatus IS NULL OR _invoiceStatus NOT IN ('ISSUED', 'PARTIALLY_PAID') THEN
+    IF _invoice_status IS NULL OR _invoice_status NOT IN ('ISSUED', 'PARTIALLY_PAID') THEN
         RETURN QUERY
         SELECT
             false,
-            'Payment Denied.  Invoice status should be either ''ISSUED'' or ''PARTIALLY_PAID'', but it is: %' || _invoiceStatus,
+            'Payment Denied.  Invoice status should be either ''ISSUED'' or ''PARTIALLY_PAID'', but it is: %' || _invoice_status,
             NULL::TEXT;
     END IF;
 
-    IF _paymentAmount > _invoiceOutstandingAmt THEN
-        _finalOutstandingAmt := 0;
-        _finalInvoiceStatus := 'PAID';
-        _creditAmt := _paymentAmount - _invoiceOutstandingAmt;
-    ELSIF _paymentAmount = _invoiceOutstandingAmt THEN
-        _finalOutstandingAmt := 0;
-        _finalInvoiceStatus := 'PAID';
-        _creditAmt := 0;
+    IF _payment_amount > _invoice_outstanding_amount THEN
+        _final_outstanding_amount := 0;
+        _final_invoice_status := 'PAID';
+        _credit_amount := _payment_amount - _invoice_outstanding_amount;
+    ELSIF _payment_amount = _invoice_outstanding_amount THEN
+        _final_outstanding_amount := 0;
+        _final_invoice_status := 'PAID';
+        _credit_amount := 0;
     ELSE
-        _finalOutstandingAmt := _invoiceOutstandingAmt - _paymentAmount;
-        _finalInvoiceStatus := 'PARTIALLY_PAID';
-        _creditAmt := 0;
+        _final_outstanding_amount := _invoice_outstanding_amount - _payment_amount;
+        _final_invoice_status := 'PARTIALLY_PAID';
+        _credit_amount := 0;
     END IF;
 
     UPDATE invoices
     SET
-        paid_amt = COALESCE(paid_amt, 0) + _paymentAmount,
-        outstanding_amt = _finalOutstandingAmt,
-        status = _finalInvoiceStatus
-    WHERE id = _invoiceId;
+        paid_amt = COALESCE(paid_amt, 0) + _payment_amount,
+        outstanding_amt = _final_outstanding_amount,
+        status = _final_invoice_status
+    WHERE id = _invoice_id;
 
     INSERT INTO transactions(school_id, academic_year_id, fiscal_year_id, user_id, initiator, type, status, invoice_id, amount, payment_method)
-    VALUES(_schoolId, _activeAcademicYearId, _activeFiscalYearId, _invoiceUserId, _initiator, 'CREDIT', 'SUCCESS', _invoiceId, _paymentAmount, _paymentMethod);
+    VALUES(_school_id, _active_academic_year_id, _active_fiscal_year_id, _invoice_user_id, _initiator, 'CREDIT', 'SUCCESS', _invoice_id, _payment_amount, _payment_method);
 
-    IF _creditAmt > 0 THEN
+    IF _credit_amount > 0 THEN
         INSERT INTO credits(school_id, user_id, amount)
-        VALUES(_schoolId, _invoiceUserId, _creditAmt)
+        VALUES(_school_id, _invoice_user_id, _credit_amount)
         ON CONFLICT(school_id, user_id)
         DO UPDATE SET
             amount = COALESCE(credits.amount, 0) + EXCLUDED.amount,
@@ -1328,32 +1329,32 @@ RETURNS TABLE (status boolean, message TEXT, description TEXT)
 LANGUAGE 'plpgsql'
 AS $BODY$
 DECLARE
-    _schoolId INTEGER;
-    _refundAmt NUMERIC(10, 2);
-    _invoiceId INTEGER;
-    _invoiceStatus VARCHAR(15);
-    _invoicePaidAmt NUMERIC(10, 2);
-    _invoiceUserId INTEGER;
+    _school_id INTEGER;
+    _refund_amount NUMERIC(10, 2);
+    _invoice_id INTEGER;
+    _invoice_status VARCHAR(15);
+    _invoice_paid_amount NUMERIC(10, 2);
+    _invoice_user_id INTEGER;
     _initiator INTEGER;
-    _refundMethod INTEGER;
+    _refund_method INTEGER;
 BEGIN
-    _schoolId := (payload->>'schoolId');
-    _refundAmt := COALESCE((payload->>'refundAmt')::NUMERIC(10, 2), 0);
-    _invoiceId := (payload->>'invoiceId');
+    _school_id := (payload->>'schoolId');
+    _refund_amount := COALESCE((payload->>'refundAmt')::NUMERIC(10, 2), 0);
+    _invoice_id := (payload->>'invoiceId');
     _initiator := (payload->>'initiator');
-    _refundMethod := (payload->>'refundMethod');
+    _refund_method := (payload->>'refundMethod');
 
-    IF NOT EXISTS(SELECT 1 FROM invoices WHERE school_id = _schoolId AND id = _invoiceId) THEN
+    IF NOT EXISTS(SELECT 1 FROM invoices WHERE school_id = _school_id AND id = _invoice_id) THEN
         RETURN QUERY
         SELECT false, 'Invoice does not exist', NULL:: TEXT;
     END IF;
 
     SELECT status, COALESCE(paid_amt, 0), user_id
-    INTO _invoiceStatus, _invoicePaidAmt, _invoiceUserId
+    INTO _invoice_status, _invoice_paid_amount, _invoice_user_id
     FROM invoices
-    WHERE school_id = _schoolId AND id = _invoiceId;
+    WHERE school_id = _school_id AND id = _invoice_id;
 
-    IF _invoiceStatus != 'PAID' OR _refundAmt IS NULL THEN
+    IF _invoice_status != 'PAID' OR _refund_amount IS NULL THEN
         RETURN QUERY
         SELECT
             false,
@@ -1361,7 +1362,7 @@ BEGIN
             NULL:: TEXT;
     END IF;
 
-    IF _refundAmt > _invoicePaidAmt THEN
+    IF _refund_amount > _invoice_paid_amount THEN
         RETURN QUERY
         SELECT
             false,
@@ -1371,10 +1372,10 @@ BEGIN
 
     UPDATE invoices
     SET
-        refunded_amt = COALESCE(refunded_amt, 0) + _refundAmt,
+        refunded_amt = COALESCE(refunded_amt, 0) + _refund_amount,
         status = 'REFUNDED',
         updated_date  = NOW()
-    WHERE school_id = _schoolId AND id = _invoiceId;
+    WHERE school_id = _school_id AND id = _invoice_id;
 
     RETURN QUERY
     SELECT true, 'Refund success', NULL::TEXT;
@@ -1393,35 +1394,35 @@ RETURNS TABLE(status boolean, message TEXT, description TEXT)
 LANGUAGE 'plpgsql'
 AS $BODY$
 DECLARE
-    _feeDetails JSONB;
+    _fee_details JSONB;
     _item JSONB;
-    _schoolId INTEGER;
+    _school_id INTEGER;
     _initiator INTEGER;
-    _studentId INTEGER;
-    _activeAcademicYearId INTEGER;
-    _activeFiscalYearId INTEGER;
+    _student_id INTEGER;
+    _active_academic_year_id INTEGER;
+    _active_fiscal_year_id INTEGER;
 BEGIN
-    _schoolId := (payload->>'schoolId');
+    _school_id := (payload->>'schoolId');
     _initiator := (payload->>'initiator');
-    _studentId := (payload->>'studentId');
-    _feeDetails := (payload->>'feeDetails');
+    _student_id := (payload->>'studentId');
+    _fee_details := (payload->>'feeDetails');
 
     SELECT id
-    INTO _activeAcademicYearId
+    INTO _active_academic_year_id
     FROM academic_years
-    WHERE school_id = _schoolId AND is_active = TRUE;
+    WHERE school_id = _school_id AND is_active = TRUE;
 
     SELECT id
-    INTO _activeFiscalYearId
+    INTO _active_fiscal_year_id
     FROM fiscal_years
-    WHERE school_id = _schoolId AND is_active = TRUE;
+    WHERE school_id = _school_id AND is_active = TRUE;
 
-    IF _activeAcademicYearId IS NULL OR _activeFiscalYearId IS NULL THEN
+    IF _active_academic_year_id IS NULL OR _active_fiscal_year_id IS NULL THEN
         RETURN QUERY
         SELECT false, 'Denied. Either Fiscal year or Academic year is not setup properly.', NULL::TEXT;
     END IF;
 
-    FOR _item IN (SELECT * FROM _feeDetails)
+    FOR _item IN (SELECT * FROM _fee_details)
     LOOP
         INSERT INTO student_fees(
             school_id,
@@ -1437,10 +1438,10 @@ BEGIN
             discount_type,
             outstanding_amt
         ) VALUES(
-            _schoolId,
-            _activeAcademicYearId,
-            _activeFiscalYearId,
-            _studentId,
+            _school_id,
+            _active_academic_year_id,
+            _active_fiscal_year_id,
+            _student_id,
             _initiator,
             _item->>'academicPeriodId',
             _item->>'feeStructureId',
@@ -1477,32 +1478,32 @@ RETURNS TABLE (status boolean, message TEXT, description TEXT)
 LANGUAGE 'plpgsql'
 AS $BODY$
 DECLARE
-    _schoolId INTEGER;
-    _academicPeriodId INTEGER;
-    _academicLevelId INTEGER;
-    _deletedOrderId INTEGER;
+    _school_id INTEGER;
+    _academic_period_id INTEGER;
+    _academic_level_id INTEGER;
+    _deleted_order_id INTEGER;
 BEGIN
-    _schoolId := (payload->>'schoolId');
-    _academicPeriodId := (payload->>'academicPeriodId');
+    _school_id := (payload->>'schoolId');
+    _academic_period_id := (payload->>'academicPeriodId');
 
-    IF NOT EXISTS(SELECT 1 FROM academic_periods WHERE school_id = _schoolId AND id = _academicPeriodId) THEN
+    IF NOT EXISTS(SELECT 1 FROM academic_periods WHERE school_id = _school_id AND id = _academic_period_id) THEN
         RETURN QUERY
         SELECT false, 'Period does not exist', NULL::TEXT;
     END IF;
 
-    SELECT academic_level_id INTO _academicLevelId
+    SELECT academic_level_id INTO _academic_level_id
     FROM academic_periods
-    WHERE school_id = _schoolId AND id = _academicPeriodId;
+    WHERE school_id = _school_id AND id = _academic_period_id;
 
     DELETE FROM academic_periods
-    WHERE school_id = _schoolId AND id = _academicPeriodId
-    RETURNING sort_order INTO _deletedOrderId;
+    WHERE school_id = _school_id AND id = _academic_period_id
+    RETURNING sort_order INTO _deleted_order_id;
 
     IF NOT EXISTS(
         SELECT 1 FROM academic_periods
-        WHERE school_id = _schoolId
-            AND academic_level_id = _academicLevelId
-            AND sort_order > _deletedOrderId
+        WHERE school_id = _school_id
+            AND academic_level_id = _academic_level_id
+            AND sort_order > _deleted_order_id
     ) THEN
         RETURN QUERY
         SELECT true, 'Period deleted successfully', NULL::TEXT;
@@ -1511,14 +1512,14 @@ BEGIN
 
     UPDATE academic_periods
     SET sort_order = -sort_order
-    WHERE school_id = _schoolId
-        AND academic_level_id = _academicLevelId
-        AND sort_order > _deletedOrderId;    
+    WHERE school_id = _school_id
+        AND academic_level_id = _academic_level_id
+        AND sort_order > _deleted_order_id;    
 
     UPDATE academic_periods
     SET sort_order = ABS(sort_order) - 1
-    WHERE school_id = _schoolId
-        AND academic_level_id = _academicLevelId
+    WHERE school_id = _school_id
+        AND academic_level_id = _academic_level_id
         AND sort_order < 0;
     
     RETURN QUERY
