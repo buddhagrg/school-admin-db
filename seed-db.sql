@@ -185,3 +185,8 @@ VALUES
     ('LA', 'Late'),
     ('AB', 'Absent'),
     ('PP', 'Partially Present');
+
+INSERT INTO roles(static_role_id, name, is_editable, school_id)
+VALUES
+(3, 'Teacher', false, -1),
+(4, 'Student', false, -1);
