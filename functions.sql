@@ -302,6 +302,8 @@ DECLARE
     _leave_histories_data JSONB;
     _celebrations_data JSONB;
     _one_month_leave_data JSONB;
+
+    _filter_verified_notice boolean DEFAULT true;
 BEGIN
     -- user check
     IF NOT EXISTS(SELECT 1 FROM users u WHERE u.id = _user_id) THEN
@@ -414,7 +416,7 @@ BEGIN
     INTO _notices_data
     FROM (
         SELECT *
-        FROM get_notices(_user_id) AS t
+        FROM get_notices(_user_id, _filter_verified_notice) AS t
         LIMIT 5
     ) AS t;
 
@@ -542,7 +544,7 @@ BEGIN
     )
     SELECT COALESCE(JSON_AGG(row_to_json(t) ORDER BY TO_CHAR(t."eventDate", 'MM-DD') ), '[]'::json)
     INTO _celebrations_data
-    FROM _celebrations AS t;
+    FROM _celebrations AS t LIMIT 5;
 
     --who is out this week
     WITH _month_dates AS (
@@ -566,8 +568,8 @@ BEGIN
         ON
             t2.from_date <= t4.day_end
             AND t2.to_date >= t4.day_start
-        WHERE t2.status = 2
-        AND t1.school_id = _user_school_id
+        WHERE t2.status = 2 AND t1.school_id = _user_school_id
+        LIMIT 5
     )t;
 
     -- Build and return the final JSON object
@@ -598,8 +600,8 @@ $BODY$;
 
 
 -- get notices
-DROP FUNCTION IF EXISTS public.get_notices(INTEGER);
-CREATE OR REPLACE FUNCTION get_notices(_user_id INTEGER)
+DROP FUNCTION IF EXISTS public.get_notices(INTEGER, boolean);
+CREATE OR REPLACE FUNCTION get_notices(_user_id INTEGER, _filter_verified_notice boolean DEFAULT false)
 RETURNS TABLE (
     id INTEGER,
     title VARCHAR(100),
@@ -659,16 +661,38 @@ BEGIN
         t1.reviewed_date AS "reviewedDate",
         t3.alias AS "status",
         t1.status AS "statusId",
-        NULL AS "whoHasAccess"
+        CASE
+            WHEN t1.recipient_type = 'SP' THEN
+                CASE
+                    WHEN t1.recipient_role_id = 3 THEN
+                        CASE
+                            WHEN t1.recipient_first_field IS NULL THEN 'All Teachers'
+                            ELSE 'Teachers from' || ' "' || t7.name || '" ' || 'department'
+                        END
+                    WHEN t1.recipient_role_id = 4 THEN
+                        CASE
+                            WHEN t1.recipient_first_field IS NULL THEN 'All Students'
+                            ELSE 'Students from' || ' "' || t8.name || '" ' || 'class'
+                        END
+                ELSE 'Unknown Recipient'
+                END
+            ELSE 'Everyone'
+        END AS "whoHasAccess"
     FROM notices t1
     JOIN users t2 ON t1.author_id = t2.id
     JOIN notice_status t3 ON t1.status = t3.id
     LEFT JOIN users t4 ON t1.reviewer_id = t4.id
-    LEFT JOIN roles t6 ON t6.id = t1.recipient_role_id  
+    LEFT JOIN roles t6 ON t6.id = t1.recipient_role_id
+    LEFT JOIN departments t7 ON t7.id = t1.recipient_first_field
+    LEFT JOIN classes t8 ON t8.id = t1.recipient_first_field
     WHERE
     (
         _userStaticRoleId = 2
         AND t1.school_id = _user_school_id
+        AND (
+            _filter_verified_notice = false
+            OR t1.status = 5
+        )
     )
     OR (
         _userStaticRoleId != 2
