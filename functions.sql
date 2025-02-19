@@ -664,12 +664,12 @@ BEGIN
         CASE
             WHEN t1.recipient_type = 'SP' THEN
                 CASE
-                    WHEN t1.recipient_role_id = 3 THEN
+                    WHEN t6.static_role_id = 3 THEN
                         CASE
                             WHEN t1.recipient_first_field IS NULL THEN 'All Teachers'
                             ELSE 'Teachers from' || ' "' || t7.name || '" ' || 'department'
                         END
-                    WHEN t1.recipient_role_id = 4 THEN
+                    WHEN t6.static_role_id = 4 THEN
                         CASE
                             WHEN t1.recipient_first_field IS NULL THEN 'All Students'
                             ELSE 'Students from' || ' "' || t8.name || '" ' || 'class'
