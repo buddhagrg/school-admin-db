@@ -63,7 +63,10 @@ BEGIN
         SELECT NULL::INTEGER, false, 'Role may not be empty', NULL::TEXT;
     END IF;
 
-    SELECT static_role_id INTO _static_role_id FROM roles WHERE id = _role_id And school_id = _school_id;
+    SELECT static_role_id
+    INTO _static_role_id
+    FROM roles
+    WHERE id = _role_id And school_id = _school_id;
     
     IF _static_role_id = 4 THEN
         RETURN QUERY
@@ -78,7 +81,8 @@ BEGIN
         END IF;
 
         INSERT INTO users (name, email, role_id, created_date, reporter_id, school_id, has_system_access)
-        VALUES (_name, _email, _role_id, now(), _reporter_id, _school_id, _has_system_access) RETURNING id INTO _user_id;
+        VALUES (_name, _email, _role_id, now(), _reporter_id, _school_id, _has_system_access)
+        RETURNING id INTO _user_id;
 
         INSERT INTO user_profiles
         (user_id, gender, marital_status, phone, dob, join_date, qualification, experience, current_address, permanent_address, father_name, mother_name, emergency_phone, school_id)
@@ -193,16 +197,15 @@ BEGIN
         SELECT NULL::INTEGER, false, 'School Id may not be empty', NULL::TEXT;
     END IF;
 
-    SELECT id INTO _role_id
+    SELECT id
+    INTO _role_id
     FROM roles
-    WHERE school_id = _school_id
-        AND static_role_id = 4;
+    WHERE school_id = _school_id AND static_role_id = 4;
 
     SELECT teacher_id
     INTO _reporter_id
     FROM class_teachers
-    WHERE class_id = _class_id
-        AND (section_id IS NULL OR section_id = _section_id);
+    WHERE class_id = _class_id AND (section_id IS NULL OR section_id = _section_id);
 
     IF _reporter_id IS NULL THEN
         SELECT t1.id
@@ -221,7 +224,8 @@ BEGIN
         END IF;
 
         INSERT INTO users (name, email, role_id, created_date, reporter_id, school_id, has_system_access)
-        VALUES (_name, _email, _role_id, now(), _reporter_id, _school_id, _has_system_access) RETURNING id INTO _user_id;
+        VALUES (_name, _email, _role_id, now(), _reporter_id, _school_id, _has_system_access)
+        RETURNING id INTO _user_id;
 
         INSERT INTO user_profiles
         (user_id, gender, phone, dob, admission_date, class_id, section_id, roll, current_address, permanent_address, father_name, father_phone, mother_name, mother_phone, guardian_name, guardian_phone, relation_of_guardian, school_id)
@@ -323,28 +327,33 @@ BEGIN
         RAISE EXCEPTION 'Role does not exist';
     END IF;
 
-    SELECT school_id FROM users u WHERE u.id = _user_id into _user_school_id;
+    SELECT school_id
+    INTO _user_school_id
+    FROM users u
+    WHERE u.id = _user_id;
     IF _user_school_id IS NULL THEN
         RAISE EXCEPTION 'School does not exist';
     END IF;
 
     --student
     IF _user_role_id = 2 THEN
-        SELECT COUNT(*) INTO _student_count_current_year
+        SELECT COUNT(*)
+        INTO _student_count_current_year
         FROM users t1
         JOIN user_profiles t2 ON t1.id = t2.user_id
         JOIN roles t3 ON t3.id = t1.role_id
         WHERE t3.static_role_id = 4
-        AND t1.school_id = _user_school_id
-        AND EXTRACT(YEAR FROM t2.admission_date) = EXTRACT(YEAR FROM CURRENT_DATE);
+            AND t1.school_id = _user_school_id
+            AND EXTRACT(YEAR FROM t2.admission_date) = EXTRACT(YEAR FROM CURRENT_DATE);
 
-        SELECT COUNT(*) INTO _student_count_previous_year
+        SELECT COUNT(*)
+        INTO _student_count_previous_year
         FROM users t1
         JOIN user_profiles t2 ON t1.id = t2.user_id
         JOIN roles t3 ON t3.id = t1.role_id
         WHERE t3.static_role_id = 4
-        AND t1.school_id = _user_school_id
-        AND EXTRACT(YEAR FROM t2.admission_date) = EXTRACT(YEAR FROM CURRENT_DATE) - 1;
+            AND t1.school_id = _user_school_id
+            AND EXTRACT(YEAR FROM t2.admission_date) = EXTRACT(YEAR FROM CURRENT_DATE) - 1;
 
         _student_value_comparison := _student_count_current_year - _student_count_previous_year;
         IF _student_count_previous_year = 0 THEN
@@ -354,21 +363,23 @@ BEGIN
         END IF;
 
         --teacher
-        SELECT COUNT(*) INTO _teacher_count_current_year
+        SELECT COUNT(*)
+        INTO _teacher_count_current_year
         FROM users t1
         JOIN user_profiles t2 ON t1.id = t2.user_id
         JOIN roles t3 ON t3.id = t1.role_id
         WHERE t3.static_role_id = 3
-        AND t1.school_id = _user_school_id
-        AND EXTRACT(YEAR FROM t2.join_date) = EXTRACT(YEAR FROM CURRENT_DATE);
+            AND t1.school_id = _user_school_id
+            AND EXTRACT(YEAR FROM t2.join_date) = EXTRACT(YEAR FROM CURRENT_DATE);
 
-        SELECT COUNT(*) INTO _teacher_count_previous_year
+        SELECT COUNT(*)
+        INTO _teacher_count_previous_year
         FROM users t1
         JOIN user_profiles t2 ON t1.id = t2.user_id
         JOIN roles t3 ON t3.id = t1.role_id
         WHERE t3.static_role_id = 3
-        AND t1.school_id = _user_school_id
-        AND EXTRACT(YEAR FROM t2.join_date) = EXTRACT(YEAR FROM CURRENT_DATE) - 1;
+            AND t1.school_id = _user_school_id
+            AND EXTRACT(YEAR FROM t2.join_date) = EXTRACT(YEAR FROM CURRENT_DATE) - 1;
 
         _teacher_value_comparison := _teacher_count_current_year - _teacher_count_previous_year;
         IF _teacher_count_previous_year = 0 THEN
@@ -378,21 +389,23 @@ BEGIN
         END IF;
 
         --parents
-        SELECT COUNT(*) INTO _parent_count_current_year
+        SELECT COUNT(*)
+        INTO _parent_count_current_year
         FROM users t1
         JOIN user_profiles t2 ON t1.id = t2.user_id
         JOIN roles t3 ON t3.id = t1.role_id
         WHERE t3.static_role_id = 5
-        AND t1.school_id = _user_school_id
-        AND EXTRACT(YEAR FROM t2.join_date) = EXTRACT(YEAR FROM CURRENT_DATE);
+            AND t1.school_id = _user_school_id
+            AND EXTRACT(YEAR FROM t2.join_date) = EXTRACT(YEAR FROM CURRENT_DATE);
 
-        SELECT COUNT(*) INTO _parent_count_previous_year
+        SELECT COUNT(*)
+        INTO _parent_count_previous_year
         FROM users t1
         JOIN user_profiles t2 ON t1.id = t2.user_id
         JOIN roles t3 ON t3.id = t1.role_id
         WHERE t3.static_role_id = 5
-        AND t1.school_id = _user_school_id
-        AND EXTRACT(YEAR FROM t2.join_date) = EXTRACT(YEAR FROM CURRENT_DATE) - 1;
+            AND t1.school_id = _user_school_id
+            AND EXTRACT(YEAR FROM t2.join_date) = EXTRACT(YEAR FROM CURRENT_DATE) - 1;
 
         _parent_value_comparison := _parent_count_current_year - _parent_count_previous_year;
         IF _parent_count_previous_year = 0 THEN
@@ -430,7 +443,8 @@ BEGIN
             t2.id,
             t2.name,
             COALESCE(SUM(
-                CASE WHEN t3.status = 2 THEN
+                CASE
+                    WHEN t3.status = 2 THEN
                     EXTRACT(DAY FROM age(t3.to_date + INTERVAL '1 day', t3.from_date))
                 ELSE 0
                 END
@@ -545,7 +559,10 @@ BEGIN
             )
         )
     )
-    SELECT COALESCE(JSON_AGG(row_to_json(t) ORDER BY TO_CHAR(t."eventDate", 'MM-DD') ), '[]'::json)
+    SELECT COALESCE(
+        JSON_AGG(row_to_json(t)
+        ORDER BY TO_CHAR(t."eventDate", 'MM-DD') )
+        , '[]'::json)
     INTO _celebration_data
     FROM _celebrations AS t LIMIT 5;
 
@@ -630,21 +647,24 @@ BEGIN
         RAISE EXCEPTION 'User does not exist';
     END IF;
 
-    SELECT u.school_id INTO _user_school_id
+    SELECT u.school_id
+    INTO _user_school_id
     FROM users u
     WHERE u.id = _user_id;
     IF _user_school_id IS NULL THEN
         RAISE EXCEPTION 'School does not exist';
     END IF;
 
-    SELECT u.role_id INTO _user_role_id
+    SELECT u.role_id
+    INTO _user_role_id
     FROM users u
     WHERE u.id = _user_id;
     IF _user_role_id IS NULL THEN
         RAISE EXCEPTION 'User role does not exist';
     END IF;
 
-    SELECT r.static_role_id INTO _user_static_roleId
+    SELECT r.static_role_id
+    INTO _user_static_roleId
     FROM roles r
     WHERE r.school_id = _user_school_id AND r.id = _user_role_id;
     IF _user_static_roleId IS NULL THEN
@@ -679,7 +699,7 @@ BEGIN
                         END
                 ELSE 'Unknown Recipient'
                 END
-            ELSE 'Everyone'
+        ELSE 'Everyone'
         END AS "whoHasAccess"
     FROM notices t1
     JOIN users t2 ON t1.author_id = t2.id
@@ -1101,7 +1121,11 @@ BEGIN
         _items := _invoice->>'items';
 
         -- validate user existence
-        IF NOT EXISTS(SELECT 1 FROM users WHERE id = _invoice_user_id AND school_id = _school_id) THEN
+        IF NOT EXISTS(
+            SELECT 1
+            FROM users
+            WHERE id = _invoice_user_id AND school_id = _school_id
+        ) THEN
             RAISE NOTICE 'Invalid user_id (%) for invoice', _invoice_user_id;
             CONTINUE;
         END IF;
@@ -1190,14 +1214,14 @@ BEGIN
         );
 
         SELECT COALESCE(SUM(total_amount), 0)
+        INTO _invoice_amount
         FROM invoice_items
-        WHERE invoice_id = _new_invoice_id
-        INTO _invoice_amount;
+        WHERE invoice_id = _new_invoice_id;
 
         SELECT COALESCE(SUM(total_discount), 0)
+        INTO _invoice_discount
         FROM invoice_items
-        WHERE invoice_id = _new_invoice_id
-        INTO _invoice_discount;
+        WHERE invoice_id = _new_invoice_id;
 
         _invoice_outstanding_amount := _invoice_amount - _invoice_discount;
 
@@ -1261,14 +1285,19 @@ BEGIN
         SELECT false, 'Denied. Either Fiscal year or Academic year is not setup properly.', NULL::TEXT;
     END IF;
 
-    IF NOT EXISTS(SELECT 1 FROM invoices WHERE school_id = _school_id AND id = _invoice_id) THEN
+    IF NOT EXISTS(
+        SELECT 1
+        FROM invoices
+        WHERE school_id = _school_id AND id = _invoice_id
+    ) THEN
         RETURN QUERY
         SELECT false, 'Invoice does not exist', NULL::TEXT;
     END IF;
 
     SELECT COALESCE(outstanding_amt, 0), user_id, status
     INTO _invoice_outstanding_amount, _invoice_user_id, _invoice_status
-    FROM invoices WHERE id = _invoice_id;
+    FROM invoices
+    WHERE id = _invoice_id;
 
     IF _invoice_status IS NULL OR _invoice_status NOT IN ('ISSUED', 'PARTIALLY_PAID') THEN
         RETURN QUERY
@@ -1344,7 +1373,11 @@ BEGIN
     _initiator := (payload->>'initiator');
     _refund_method := (payload->>'refundMethod');
 
-    IF NOT EXISTS(SELECT 1 FROM invoices WHERE school_id = _school_id AND id = _invoice_id) THEN
+    IF NOT EXISTS(
+        SELECT 1
+        FROM invoices
+        WHERE school_id = _school_id AND id = _invoice_id
+    ) THEN
         RETURN QUERY
         SELECT false, 'Invoice does not exist', NULL:: TEXT;
     END IF;
@@ -1449,7 +1482,8 @@ BEGIN
             _item->>'amount',
             _item->>'discountValue',
             _item->>'discountType',
-            CASE WHEN (_item->>'discountType') = 'P' THEN
+            CASE
+                WHEN (_item->>'discountType') = 'P' THEN
                 (_item->>'amount') - ((COALESCE((_item->>'discountValue'),0) / 100) * (_item->>'amount'))
             ELSE
                 (_item->>'amount') - COALESCE((_item->>'discountValue'),0)
@@ -1486,12 +1520,17 @@ BEGIN
     _school_id := (payload->>'schoolId');
     _academic_period_id := (payload->>'academicPeriodId');
 
-    IF NOT EXISTS(SELECT 1 FROM academic_periods WHERE school_id = _school_id AND id = _academic_period_id) THEN
+    IF NOT EXISTS(
+        SELECT 1
+        FROM academic_periods
+        WHERE school_id = _school_id AND id = _academic_period_id
+    ) THEN
         RETURN QUERY
         SELECT false, 'Period does not exist', NULL::TEXT;
     END IF;
 
-    SELECT academic_level_id INTO _academic_level_id
+    SELECT academic_level_id
+    INTO _academic_level_id
     FROM academic_periods
     WHERE school_id = _school_id AND id = _academic_period_id;
 
@@ -1500,7 +1539,8 @@ BEGIN
     RETURNING sort_order INTO _deleted_order_id;
 
     IF NOT EXISTS(
-        SELECT 1 FROM academic_periods
+        SELECT 1
+        FROM academic_periods
         WHERE school_id = _school_id
             AND academic_level_id = _academic_level_id
             AND sort_order > _deleted_order_id
