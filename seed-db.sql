@@ -127,7 +127,7 @@ VALUES
 
 --super admin menus
 ('Super Admin Dashboard', '', NULL, NULL, NULL, 'screen', NULL, '1'),
-('Schools', 'schools/manage', 'school.svg', NULL, 1, 'menu-screen', NULL, '1'),
+('Schools', 'schools', 'school.svg', NULL, 1, 'menu-screen', NULL, '1'),
 ('Get All Schools', 'api/v1/schools', NULL, 'schools/settings', NULL, 'api', 'GET', '1'),
 ('Add new school', 'api/v1/schools', NULL, 'schools/settings', NULL, 'api', 'POST', '1'),
 ('Edit School', 'api/v1/schools/:id', NULL, 'schools/settings', NULL, 'api', 'PUT', '1'),
