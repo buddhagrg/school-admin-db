@@ -132,11 +132,11 @@ VALUES
 ('Add new school', 'api/v1/schools', NULL, 'schools/settings', NULL, 'api', 'POST', '1'),
 ('Edit School', 'api/v1/schools/:id', NULL, 'schools/settings', NULL, 'api', 'PUT', '1'),
 ('Delete School', 'api/v1/schools/:id', NULL, 'schools/settings', NULL, 'api', 'DELETE', '1'),
-('Permissions', 'permissions_parent', 'role.svg', NULL, 2, 'menu-screen', NULL, '1'),
-('Get all permissions', 'api/v1/permissions', NULL, 'permissions_parent', NULL, 'api', 'GET', '1'),
-('Add new permission', 'api/v1/permissions', NULL, 'permissions_parent', NULL, 'api', 'POST', '1'),
-('Edit permission', 'api/v1/permissions/:id', NULL, 'permissions_parent', NULL, 'api', 'PUT', '1'),
-('Delete permission', 'api/v1/permissions/:id', NULL, 'permissions_parent', NULL, 'api', 'DELETE', '1')
+('Permissions', 'permissions', 'role.svg', NULL, 2, 'menu-screen', NULL, '1'),
+('Get all permissions', 'api/v1/permissions', NULL, 'permissions', NULL, 'api', 'GET', '1'),
+('Add new permission', 'api/v1/permissions', NULL, 'permissions', NULL, 'api', 'POST', '1'),
+('Edit permission', 'api/v1/permissions/:id', NULL, 'permissions', NULL, 'api', 'PUT', '1'),
+('Delete permission', 'api/v1/permissions/:id', NULL, 'permissions', NULL, 'api', 'DELETE', '1')
 ON CONFLICT DO NOTHING;
 
 
