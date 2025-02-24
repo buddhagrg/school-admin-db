@@ -127,7 +127,7 @@ CREATE TABLE user_profiles(
     UNIQUE(user_id, school_id)
 );
 
-CREATE TABLE access_controls(
+CREATE TABLE permissions(
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     path VARCHAR(100) DEFAULT NULL,
@@ -201,13 +201,13 @@ CREATE TABLE user_refresh_tokens (
   school_id INTEGER REFERENCES schools(school_id) NOT NULL
 );
 
-CREATE TABLE permissions(
+CREATE TABLE role_permissions(
     id SERIAL PRIMARY KEY,
     role_id INTEGER NOT NULL,
-    access_control_id INTEGER REFERENCES access_controls(id),
+    permission_id INTEGER REFERENCES permissions(id),
     type VARCHAR(20) DEFAULT NULL,
     school_id INTEGER REFERENCES schools(school_id) NOT NULL,
-    UNIQUE(role_id, access_control_id, school_id)
+    UNIQUE(role_id, permission_id, school_id)
 );
 
 CREATE TABLE user_leave_policy (
@@ -477,13 +477,4 @@ CREATE TABLE transactions(
     status VARCHAR(30) CHECK(status IN('PENDING', 'SUCCESS')) DEFAULT 'PENDING',
     remarks TEXT DEFAULT NULL,
     updated_date TIMESTAMP DEFAULT NULL
-);
-
-CREATE TABLE academic_period_dates(
-    id SERIAL PRIMARY KEY,
-    school_id INTEGER REFERENCES schools(school_id) NOT NULL,
-    academic_period_id INTEGER REFERENCES academic_periods(id) NOT NULL,
-    start_date DATE DEFAULT NULL,
-    end_date DATE DEFAULT NULL,
-    UNIQUE(school_id, academic_period_id)
 );

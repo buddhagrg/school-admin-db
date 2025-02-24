@@ -44,7 +44,7 @@ BEGIN
     _mother_name := COALESCE(data->>'motherName', NULL);
     _emergency_phone := COALESCE(data->>'emergencyPhone', NULL);
     _has_system_access := COALESCE((data->>'hasSystemAccess')::BOOLEAN, false);
-    _reporter_id := COALESCE((data->>'reporterId')::INTEGER, NULL);
+    _reporter_id := NULLIF((data->>'reporterId'), '');
     _school_id := COALESCE((data->>'schoolId')::INTEGER, NULL);
 
     IF _user_id IS NULL THEN
