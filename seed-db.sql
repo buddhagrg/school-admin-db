@@ -9,10 +9,10 @@ INSERT INTO permissions(
     direct_allowed_role_id
 )
 VALUES
-('Dashoard', '', NULL, NULL, 1, 'menu-screen', NULL, '2'),
+('Dashoard', '', NULL, NULL, 1, 'menu', NULL, '2'),
 ('Get dashboard data', 'api/v1/dashboard', NULL, '', NULL, 'api', 'GET', '2'),
 
-('Academic Structure', 'academic_parent', NULL, NULL, 2, 'menu-screen', NULL, '2'),
+('Academic Structure', 'academic_parent', NULL, NULL, 2, 'menu', NULL, '2'),
 ('Manage Levels & Periods', 'academic/levels/periods', NULL, 'academic_parent', 1, 'menu-screen', NULL, '2'),
 ('Manage Level Classes', 'academic/levels/classes', NULL, 'academic_parent', 2, 'menu-screen', NULL, '2'),
 ('Define Period Dates', 'academic/periods/dates', NULL, 'academic_parent', 3, 'menu-screen', NULL, '2'),
@@ -32,7 +32,7 @@ VALUES
 ('Get all academic periods with dates', 'api/v1/academic/levels/:id/periods/dates', NULL, 'academic_parent', NULL, 'api', 'GET', '2'),
 ('Define periods dates', 'api/v1/academic/periods/dates', NULL, 'academic_parent', NULL, 'api', 'POST', '2'),
 
-('Class Management', 'class_mgmt_parent', NULL, NULL, 3, 'menu-screen', NULL, '2'),
+('Class Management', 'class_mgmt_parent', NULL, NULL, 3, 'menu', NULL, '2'),
 ('Manage Classes', 'classes/sections', NULL, 'class_mgmt_parent', 1, 'menu-screen', NULL, '2'),
 ('Manage Class teachers', 'classes/teachers', NULL, 'class_mgmt_parent', 2, 'menu-screen', NULL, '2'),
 ('Get all classes with sections', 'api/v1/classes/sections', NULL, 'class_mgmt_parent', NULL, 'api', 'GET', '2'),
@@ -47,7 +47,7 @@ VALUES
 ('Add class teacher', 'api/v1/classes/:id/teachers', NULL, 'class_mgmt_parent', NULL, 'api', 'PUT', '2'),
 ('Delete class teacher', 'api/v1/classes/:id/teachers/:teacherId', NULL, 'class_mgmt_parent', NULL, 'api', 'DELETE', '2'),
 
-('User Management', 'user_mgmt_parent', NULL, NULL, 4, 'menu-screen', NULL, '2'),
+('User Management', 'user_mgmt_parent', NULL, NULL, 4, 'menu', NULL, '2'),
 ('Manage Roles & Permissions', 'users/roles-permissions', NULL, 'user_mgmt_parent', 1, 'menu-screen', NULL, '2'),
 ('Add New Student', 'users/students/add', NULL, 'user_mgmt_parent', 2, 'menu-screen', NULL, '2'),
 ('Add New Staff', 'users/staff/add', NULL, 'user_mgmt_parent', 3, 'menu-screen', NULL, '2'),
@@ -76,7 +76,7 @@ VALUES
 ('Get staff', 'api/v1/staff/:id', NULL, 'user_mgmt_parent', NULL, 'api', 'GET', '2'),
 ('Edit staff', 'api/v1/staff/:id', NULL, 'user_mgmt_parent', NULL, 'api', 'PUT', '2'),
 
-('Leave Management', 'leave_mgmt_parent', NULL, NULL, 5, 'menu-screen', NULL, '2'),
+('Leave Management', 'leave_mgmt_parent', NULL, NULL, 5, 'menu', NULL, '2'),
 ('Manage Leave Policies', 'leaves/policies', NULL, 'leave_mgmt_parent', 1, 'menu-screen', NULL, '2'),
 ('Approve/Reject Leave Request', 'leaves/review', NULL, 'leave_mgmt_parent', 2, 'menu-screen', NULL, '2'),
 ('Add leave policy', 'api/v1/leaves/policies', NULL, 'leave_mgmt_parent', NULL, 'api', 'POST', '2'),
@@ -94,7 +94,7 @@ VALUES
 ('Delete leave request', 'api/v1/leaves/requests/:id', NULL, 'leave_mgmt_parent', NULL, 'api', 'DELETE', '2'),
 ('Edit leave request status', 'api/v1/leaves/requests/pending/:id/status', NULL, 'leave_mgmt_parent', NULL, 'api', 'PATCH', '2'),
 
-('Notices & Announcements', 'notice_announcement_parent', NULL, NULL, 6, 'menu-screen', NULL, '2'),
+('Notices & Announcements', 'notice_announcement_parent', NULL, NULL, 6, 'menu', NULL, '2'),
 ('View All Notices', 'notices', NULL, 'notice_announcement_parent', 1, 'menu-screen', NULL, '2'),
 ('Add Notice', 'notices/add', NULL, 'notice_announcement_parent', 2, 'menu-screen', NULL, '2'),
 ('Manage Pending Notices', 'notices/review', NULL, 'notice_announcement_parent', 3, 'menu-screen', NULL, '2'),
@@ -108,14 +108,17 @@ VALUES
 ('Add new notice', 'api/v1/notices', NULL, 'notice_announcement_parent', NULL, 'api', 'POST', '2'),
 ('Edit notice', 'api/v1/notices/:id', NULL, 'notice_announcement_parent', NULL, 'api', 'PUT', '2'),
 
-('Manage Departments', 'departments', NULL, NULL, 7, 'menu-screen', NULL, '2'),
+('Manage Departments', 'departments', NULL, NULL, 7, 'menu', NULL, '2'),
 ('Get all departments', 'api/v1/departments', NULL, 'departments', NULL, 'api', 'GET', '2'),
 ('Add new department', 'api/v1/departments', NULL, 'departments', NULL, 'api', 'POST', '2'),
 ('Get department', 'api/v1/departments/:id', NULL, 'departments', NULL, 'api', 'GET', '2'),
 ('Edit department', 'api/v1/departments/:id', NULL, 'departments', NULL, 'api', 'PUT', '2'),
 ('Delete department', 'api/v1/departments/:id', NULL, 'departments', NULL, 'api', 'DELETE', '2'),
 
-('Settings', 'settings_parent', NULL, NULL, 8, 'menu-screen', NULL, '2'),
+('Fee Management', 'fees_parent', NULL, NULL, 8, 'menu', NULL, '2'),
+('Manage Fiscal Years', 'fiscal-years', NULL, 'fees_parent', 1, 'menu-screen', NULL, '2'),
+
+('Settings', 'settings_parent', NULL, NULL, 9, 'menu', NULL, '2'),
 ('Configure School Setting', 'schools/configure', NULL, 'settings_parent', 1, 'menu-screen', NULL, '2'),
 ('Get school', 'api/v1/schools/:id', NULL, 'settings_parent', NULL, 'api', 'GET', '12'),
 ('Edit school', 'api/v1/schools/:id', NULL, 'settings_parent', NULL, 'api', 'PUT', '12'),
