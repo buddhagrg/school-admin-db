@@ -118,7 +118,13 @@ VALUES
 ('Fee Management', 'fees_parent', NULL, NULL, 8, 'menu', NULL, '2'),
 ('Manage Fiscal Years', 'fiscal-years', NULL, 'fees_parent', 1, 'menu-screen', NULL, '2'),
 
-('Settings', 'settings_parent', NULL, NULL, 9, 'menu', NULL, '2'),
+('Attendance Management', 'attendance_parent', NULL, NULL, 9, 'menu', NULL, '2'),
+('Record Staff Attendance', 'attendances/staff', NULL, 'attendance_parent', 1, 'menu-screen', NULL, '2'),
+('Record Students Attendance', 'attendances/students', NULL, 'attendance_parent', 2, 'menu-screen', NULL, '2'),
+('Get Students Attendance Record', 'attendances/students/record', NULL, 'attendance_parent', 3, 'menu-screen', NULL, '2'),
+('Get Staff Attendance Record', 'attendances/staff/record', NULL, 'attendance_parent', 4, 'menu-screen', NULL, '2'),
+
+('Settings', 'settings_parent', NULL, NULL, 10, 'menu', NULL, '2'),
 ('Configure School Setting', 'schools/configure', NULL, 'settings_parent', 1, 'menu-screen', NULL, '2'),
 ('Get school', 'api/v1/schools/:id', NULL, 'settings_parent', NULL, 'api', 'GET', '12'),
 ('Edit school', 'api/v1/schools/:id', NULL, 'settings_parent', NULL, 'api', 'PUT', '12'),
@@ -195,9 +201,9 @@ VALUES
 INSERT INTO attendance_status (code, description) 
 VALUES
     ('PR', 'Present'),
-    ('LA', 'Late'),
+    ('LP', 'Late Present'),
     ('AB', 'Absent'),
-    ('PP', 'Partially Present');
+    ('EL', 'Early Leave');
 
 INSERT INTO roles(static_role_id, name, is_editable, school_id)
 VALUES
