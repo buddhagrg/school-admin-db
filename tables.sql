@@ -267,7 +267,7 @@ CREATE TABLE refunds(
 
 CREATE TABLE attendance_status(
     id SERIAL PRIMARY KEY,
-    code CHAR(2),
+    code CHAR(2) UNIQUE,
     description VARCHAR(30)
 );
 
@@ -285,20 +285,18 @@ CREATE TABLE attendances(
     id SERIAL PRIMARY KEY,
     school_id INTEGER REFERENCES schools(school_id) NOT NULL,
     academic_year_id INTEGER REFERENCES academic_years(id) NOT NULL,
-    attendance_status_id INTEGER NOT NULL,
     user_id INTEGER REFERENCES users(id) NOT NULL,
-    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_date TIMESTAMP DEFAULT NULL,
+    attendance_status_code CHAR(2) REFERENCES attendance_status(code) NOT NULL,
     attendance_date DATE DEFAULT CURRENT_DATE,
     remarks TEXT DEFAULT NULL,
-    attendance_taker INTEGER REFERENCES users(id) NOT NULL,
-    class_id INTEGER REFERENCES classes(id) DEFAULT NULL,
-    section_id INTEGER REFERENCES sections(id) DEFAULT NULL,
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_date TIMESTAMP DEFAULT NULL,
+    attendance_recorder INTEGER REFERENCES users(id) NOT NULL,
     attendance_type CHAR(1) CHECK(attendance_type IN('D', 'S')) DEFAULT 'D',
         -- D= Day Wise
         -- S= Subject Wise
     subject_id INTEGER REFERENCES subjects(id) DEFAULT NULL,
-    UNIQUE(school_id, academic_year_id, user_id, attendance_date, attendance_type, class_id, section_id, subject_id)
+    UNIQUE(school_id, academic_year_id, user_id, attendance_date)
 );
 
 CREATE TABLE exams(
