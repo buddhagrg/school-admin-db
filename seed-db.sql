@@ -119,10 +119,8 @@ VALUES
 ('Manage Fiscal Years', 'fiscal-years', NULL, 'fees_parent', 1, 'menu-screen', NULL, '2'),
 
 ('Attendance Management', 'attendance_parent', NULL, NULL, 9, 'menu', NULL, '2'),
-('Record Staff Attendance', 'attendances/staff', NULL, 'attendance_parent', 1, 'menu-screen', NULL, '2'),
-('Record Students Attendance', 'attendances/students', NULL, 'attendance_parent', 2, 'menu-screen', NULL, '2'),
-('Get Students Attendance Record', 'attendances/students/record', NULL, 'attendance_parent', 3, 'menu-screen', NULL, '2'),
-('Get Staff Attendance Record', 'attendances/staff/record', NULL, 'attendance_parent', 4, 'menu-screen', NULL, '2'),
+('Record Attendance', 'attendances/record', NULL, 'attendance_parent', 1, 'menu-screen', NULL, '2'),
+('View Attendance Record', 'attendances', NULL, 'attendance_parent', 2, 'menu-screen', NULL, '2'),
 
 ('Settings', 'settings_parent', NULL, NULL, 10, 'menu', NULL, '2'),
 ('Configure School Setting', 'schools/configure', NULL, 'settings_parent', 1, 'menu-screen', NULL, '2'),
