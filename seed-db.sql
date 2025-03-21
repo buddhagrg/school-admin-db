@@ -79,6 +79,7 @@ VALUES
 ('Leave Management', 'leave_mgmt_parent', NULL, NULL, 5, 'menu', NULL, '2'),
 ('Manage Leave Policies', 'leaves/policies', NULL, 'leave_mgmt_parent', 1, 'menu-screen', NULL, '2'),
 ('Approve/Reject Leave Request', 'leaves/review', NULL, 'leave_mgmt_parent', 2, 'menu-screen', NULL, '2'),
+('Apply leave for others', 'leaves/apply-for-others', NULL, 'leave_mgmt_parent', 3, 'menu-screen', NULL, '2'),
 ('Add leave policy', 'api/v1/leaves/policies', NULL, 'leave_mgmt_parent', NULL, 'api', 'POST', '2'),
 ('Get all leave policies', 'api/v1/leaves/policies', NULL, 'leave_mgmt_parent', NULL, 'api', 'GET', '2'),
 ('Get my leave policies', 'api/v1/leaves/policies/my', NULL, 'leave_mgmt_parent', NULL, 'api', 'GET', '2'),
@@ -144,25 +145,26 @@ VALUES
 ('Get all permissions', 'api/v1/permissions', NULL, 'permissions', NULL, 'api', 'GET', '1'),
 ('Add new permission', 'api/v1/permissions', NULL, 'permissions', NULL, 'api', 'POST', '1'),
 ('Edit permission', 'api/v1/permissions/:id', NULL, 'permissions', NULL, 'api', 'PUT', '1'),
-('Delete permission', 'api/v1/permissions/:id', NULL, 'permissions', NULL, 'api', 'DELETE', '1')
+('Delete permission', 'api/v1/permissions/:id', NULL, 'permissions', NULL, 'api', 'DELETE', '1'),
+
+--student menus
+('Attendance Records', 'attendance_records_parent', NULL, NULL, 3, 'menu', NULL, NULL),
+('Request Leave', 'leaves/request', NULL, 'attendance_records_parent', 1, 'menu-screen', NULL, NULL)
 ON CONFLICT DO NOTHING;
 
 
+INSERT INTO leave_status (code, name) VALUES
+('REVIEW_REQUEST','On Review'),
+('APPROVED','Approved'),
+('CANCELLED','Cancelled');
 
-ALTER SEQUENCE leave_status_id_seq RESTART WITH 1;
-INSERT INTO leave_status (name) VALUES
-('On Review'),
-('Approved'),
-('Cancelled');
-
-ALTER SEQUENCE notice_status_id_seq RESTART WITH 1;
-INSERT INTO notice_status (name, alias)
-VALUES ('Draft', 'Draft'),
-('Submit for Review', 'Approval Pending'),
-('Submit for Deletion', 'Delete Pending'),
-('Reject', 'Rejected'),
-('Approve', 'Approved'),
-('Delete', 'Deleted');
+INSERT INTO notice_status (code, name, alias)
+VALUES ('DRAFTED', 'Draft', 'Draft'),
+('REVIEW_REQUESTED', 'Submit for Approval', 'Approval Pending'),
+('DELETE_REQUESTED', 'Submit for Deletion', 'Delete Pending'),
+('REJECTED', 'Reject', 'Rejected'),
+('APPROVED', 'Approve', 'Approved'),
+('DELETED', 'Delete', 'Deleted');
 
 -- system super admin
 INSERT INTO schools(name, email, school_id, is_active, is_email_verified)
@@ -198,10 +200,11 @@ VALUES
 
 INSERT INTO attendance_status (code, description) 
 VALUES
-    ('PR', 'Present'),
-    ('LP', 'Late Present'),
-    ('AB', 'Absent'),
-    ('EL', 'Early Leave');
+    ('PRESENT', 'Present'),
+    ('LATE_PRESENT', 'Late Present'),
+    ('ABSENT', 'Absent'),
+    ('EARLY_LEAVE', 'Early Leave'),
+    ('ON_LEAVE', 'On Leave');
 
 INSERT INTO roles(static_role_id, name, is_editable, school_id)
 VALUES
