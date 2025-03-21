@@ -140,7 +140,7 @@ AS $BODY$
 DECLARE
     _operation_type VARCHAR(10);
     _reporter_id INTEGER;
-
+    _active_academic_year_id INTEGER DEFAULT NULL;
     _user_id INTEGER;
     _name TEXT;
     _role_id INTEGER;
@@ -160,7 +160,7 @@ DECLARE
     _has_system_access BOOLEAN;
     _class_id INTEGER;
     _section_id INTEGER;
-    _admission_date DATE;
+    _join_date DATE;
     _roll INTEGER;
     _school_id INTEGER;
 BEGIN
@@ -182,7 +182,7 @@ BEGIN
     _has_system_access := COALESCE((data->>'hasSystemAccess')::BOOLEAN, false);
     _class_id := COALESCE(data->>'class', NULL);
     _section_id := COALESCE(data->>'section', NULL);
-    _admission_date := COALESCE((data->>'admissionDate')::DATE, NULL);
+    _join_date := COALESCE((data->>'joinDate')::DATE, NULL);
     _roll := COALESCE((data->>'roll')::INTEGER, NULL);
     _school_id := COALESCE((data->>'schoolId')::INTEGER, NULL);
 
@@ -201,6 +201,15 @@ BEGIN
     INTO _role_id
     FROM roles
     WHERE school_id = _school_id AND static_role_id = 4;
+
+    SELECT id
+    INTO _active_academic_year_id
+    FROM academic_years
+    WHERE is_active = TRUE AND school_id = _school_id;
+    IF _active_academic_year_id IS NULL THEN
+        RETURN QUERY
+        SELECT NULL::INTEGER, false, 'Academic year not set up', NULL::TEXT;
+    END IF;
 
     SELECT teacher_id
     INTO _reporter_id
@@ -228,12 +237,12 @@ BEGIN
         RETURNING id INTO _user_id;
 
         INSERT INTO user_profiles
-        (user_id, gender, phone, dob, admission_date, class_id, section_id, roll, current_address, permanent_address, father_name, father_phone, mother_name, mother_phone, guardian_name, guardian_phone, relation_of_guardian, school_id)
+        (user_id, gender, phone, dob, join_date, class_id, section_id, roll, current_address, permanent_address, father_name, father_phone, mother_name, mother_phone, guardian_name, guardian_phone, relation_of_guardian, school_id)
         VALUES
-        (_user_id, _gender, _phone, _dob, _admission_date, _class_id, _section_id, _roll, _current_address, _permanent_address, _father_name, _father_phone, _mother_name, _mother_phone, _guardian_name, _guardian_phone, _relation_of_guardian, _school_id);
+        (_user_id, _gender, _phone, _dob, _join_date, _class_id, _section_id, _roll, _current_address, _permanent_address, _father_name, _father_phone, _mother_name, _mother_phone, _guardian_name, _guardian_phone, _relation_of_guardian, _school_id);
 
         INSERT INTO student_academic_record(school_id, student_id, academic_year_id, class_id, section_id, roll_number)
-        VALUES(_school_id, _user_id, (SELECT id FROM academic_years WHERE is_active = TRUE AND school_id = _school_id), _class_id, _section_id, _roll);
+        VALUES(_school_id, _user_id, _active_academic_year_id, _class_id, _section_id, _roll);
 
         RETURN QUERY
         SELECT _user_id, true, 'Student added successfully', NULL;
@@ -254,7 +263,7 @@ BEGIN
         gender = _gender,
         phone = _phone,
         dob = _dob,
-        admission_date = _admission_date,
+        join_date = _join_date,
         class_id = _class_id,
         section_id  =_section_id,
         roll = _roll,
@@ -286,7 +295,7 @@ RETURNS JSONB
 LANGUAGE plpgsql
 AS $BODY$
 DECLARE
-    _user_role_id INTEGER;
+    _user_static_role_id INTEGER;
     _user_school_id INTEGER;
 
     _student_count_current_year INTEGER;
@@ -318,12 +327,12 @@ BEGIN
     END IF;
 
     SELECT t2.static_role_id
-    INTO _user_role_id
+    INTO _user_static_role_id
     FROM users t1
     JOIN roles t2 ON t2.id = t1.role_id
     WHERE t1.id = _user_id;
 
-    IF _user_role_id IS NULL THEN
+    IF _user_static_role_id IS NULL THEN
         RAISE EXCEPTION 'Role does not exist';
     END IF;
 
@@ -336,7 +345,7 @@ BEGIN
     END IF;
 
     --student
-    IF _user_role_id = 2 THEN
+    IF _user_static_role_id = 2 THEN
         SELECT COUNT(*)
         INTO _student_count_current_year
         FROM users t1
@@ -344,7 +353,7 @@ BEGIN
         JOIN roles t3 ON t3.id = t1.role_id
         WHERE t3.static_role_id = 4
             AND t1.school_id = _user_school_id
-            AND EXTRACT(YEAR FROM t2.admission_date) = EXTRACT(YEAR FROM CURRENT_DATE);
+            AND EXTRACT(YEAR FROM t2.join_date) = EXTRACT(YEAR FROM CURRENT_DATE);
 
         SELECT COUNT(*)
         INTO _student_count_previous_year
@@ -353,7 +362,7 @@ BEGIN
         JOIN roles t3 ON t3.id = t1.role_id
         WHERE t3.static_role_id = 4
             AND t1.school_id = _user_school_id
-            AND EXTRACT(YEAR FROM t2.admission_date) = EXTRACT(YEAR FROM CURRENT_DATE) - 1;
+            AND EXTRACT(YEAR FROM t2.join_date) = EXTRACT(YEAR FROM CURRENT_DATE) - 1;
 
         _student_value_comparison := _student_count_current_year - _student_count_previous_year;
         IF _student_count_previous_year = 0 THEN
@@ -444,7 +453,7 @@ BEGIN
             t2.name,
             COALESCE(SUM(
                 CASE
-                    WHEN t3.status = 2 THEN
+                    WHEN t3.leave_status_code = 'APPROVED' THEN
                     EXTRACT(DAY FROM age(t3.to_date + INTERVAL '1 day', t3.from_date))
                 ELSE 0
                 END
@@ -478,14 +487,14 @@ BEGIN
             EXTRACT(DAY FROM age(t1.to_date + INTERVAL '1 day', t1.from_date)) AS days
         FROM user_leaves t1
         JOIN leave_policies t2 ON t1.leave_policy_id = t2.id
-        JOIN leave_status t3 ON t1.status = t3.id
+        JOIN leave_status t3 ON t3.code = t1.leave_status_code
         LEFT JOIN users t4 ON t1.approver_id = t4.id
         JOIN users t5 ON t1.user_id = t5.id
         WHERE (
-            _user_role_id = 2
+            _user_static_role_id = 2
             And t1.school_id = _user_school_id
         ) OR (
-            _user_role_id != 2
+            _user_static_role_id != 2
             AND t1.user_id = _user_id
             And t1.school_id = _user_school_id
         )
@@ -518,38 +527,12 @@ BEGIN
         SELECT 
             t1.id AS "userId", 
             t1.name AS user, 
-            'Happy ' ||
-                CASE
-                    WHEN t3.static_role_id = 4 THEN
-                        EXTRACT(YEAR FROM age(now(), t2.admission_date))
-                    ELSE
-                        EXTRACT(YEAR FROM age(now(), t2.join_date))
-                END || ' Anniversary!' AS event, 
-            CASE
-                WHEN t3.static_role_id = 4 THEN
-                    t2.admission_date
-                ELSE
-                    t2.join_date
-            END AS "eventDate"
+            'Happy ' || EXTRACT(YEAR FROM age(now(), t2.join_date)) || ' Anniversary!' AS event, 
+            t2.join_date AS "eventDate"
         FROM users t1
         JOIN user_profiles t2 ON t1.id = t2.user_id
         JOIN roles t3 ON t3.id = t1.role_id
-        WHERE 
-        (
-            t3.static_role_id = 4
-            AND t1.school_id = _user_school_id
-            AND t2.admission_date IS NOT NULL 
-            AND age(now(), t2.admission_date) >= INTERVAL '1 year'
-            AND (
-                (t2.admission_date +
-                (EXTRACT(YEAR FROM age(now(), t2.admission_date)) + 1 ) * INTERVAL '1 year')
-                BETWEEN now() AND now() + '90 days'
-            )
-        )
-        OR 
-        (
-            t3.static_role_id != 4
-            AND t1.school_id = _user_school_id
+        WHERE t1.school_id = _user_school_id
             AND t2.join_date IS NOT NULL 
             AND age(now(), t2.join_date) >= INTERVAL '1 year'
             AND (
@@ -557,7 +540,6 @@ BEGIN
                 (EXTRACT(YEAR FROM age(now(), t2.join_date)) + 1 ) * INTERVAL '1 year')
                 BETWEEN now() AND now() + '90 days'
             )
-        )
     )
     SELECT COALESCE(
         JSON_AGG(row_to_json(t)
@@ -582,13 +564,13 @@ BEGIN
             t2.to_date AS "toDate",
             t3.name AS "leaveType"
         FROM users t1
-        JOIN user_leaves t2 ON t1.id = t2.user_id
+        JOIN user_leaves t2 ON t2.user_id = t1.id
         JOIN leave_policies t3 ON t2.leave_policy_id = t3.id
         JOIN _month_dates t4
         ON
             t2.from_date <= t4.day_end
             AND t2.to_date >= t4.day_start
-        WHERE t2.status = 2 AND t1.school_id = _user_school_id
+        WHERE t2.leave_status_code = 'APPROVED' AND t1.school_id = _user_school_id
         LIMIT 5
     )t;
 
@@ -633,7 +615,7 @@ RETURNS TABLE (
     "reviewerName" VARCHAR(100),
     "reviewedDate" TIMESTAMP,
     status VARCHAR(100),
-    "statusId" INTEGER,
+    "statusId" VARCHAR(20),
     "whoHasAccess" TEXT
 )
 LANGUAGE plpgsql
@@ -683,7 +665,7 @@ BEGIN
         t4.name AS "reviewerName",
         t1.reviewed_date AS "reviewedDate",
         t3.alias AS "status",
-        t1.status AS "statusId",
+        t1.notice_status_code AS "statusId",
         CASE
             WHEN t1.recipient_type = 'SP' THEN
                 CASE
@@ -703,7 +685,7 @@ BEGIN
         END AS "whoHasAccess"
     FROM notices t1
     JOIN users t2 ON t1.author_id = t2.id
-    JOIN notice_status t3 ON t1.status = t3.id
+    JOIN notice_status t3 ON t3.code = t1.notice_status_code
     LEFT JOIN users t4 ON t1.reviewer_id = t4.id
     LEFT JOIN roles t6 ON t6.id = t1.recipient_role_id
     LEFT JOIN departments t7 ON t7.id = t1.recipient_first_field
@@ -714,18 +696,18 @@ BEGIN
         AND t1.school_id = _user_school_id
         AND (
             _filter_verified_notice = false
-            OR t1.status = 5
+            OR t1.notice_status_code = 'APPROVED'
         )
     )
     OR (
         _user_static_roleId != 2
         AND t1.school_id = _user_school_id
         AND (
-            t1.status != 6
+            t1.notice_status_code != 'DELETED'
             AND (
                 t1.author_id = _user_id
                 OR (
-                    t1.status = 5
+                    t1.notice_status_code = 'APPROVED'
                     AND (
                         t1.recipient_type = 'EV'
                         OR (

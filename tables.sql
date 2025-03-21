@@ -86,7 +86,6 @@ CREATE TABLE users(
     role_id INTEGER NOT NULL,
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_date TIMESTAMP DEFAULT NULL,
-    leave_policy_id INTEGER REFERENCES leave_policies(id) DEFAULT NULL,
     reporter_id INTEGER DEFAULT NULL,
     status_last_reviewed_date TIMESTAMP DEFAULT NULL,
     status_last_reviewer_id INTEGER REFERENCES users(id)
@@ -110,7 +109,6 @@ CREATE TABLE user_profiles(
     section_id INTEGER REFERENCES sections(id) DEFAULT NULL,
     roll INTEGER DEFAULT NULL,
     department_id INTEGER REFERENCES departments(id) DEFAULT NULL,
-    admission_date DATE DEFAULT NULL,
     father_name VARCHAR(50) DEFAULT NULL,
     father_phone VARCHAR(20) DEFAULT NULL,
     mother_name VARCHAR(50) DEFAULT NULL,
@@ -142,12 +140,14 @@ CREATE TABLE permissions(
 
 CREATE TABLE leave_status(
     id SERIAL PRIMARY KEY,
+    code VARCHAR(20) NOT NULL UNIQUE,
     name VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE user_leaves(
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users (id) NOT NULL,
+    academic_year_id INTEGER REFERENCES academic_years(id) NOT NULL,
     leave_policy_id INTEGER REFERENCES leave_policies(id) DEFAULT NULL,
     from_date DATE NOT NULL,
     to_date DATE NOT NULL,
@@ -156,8 +156,9 @@ CREATE TABLE user_leaves(
     updated_date TIMESTAMP DEFAULT NULL,
     approved_date TIMESTAMP DEFAULT NULL,
     approver_id INTEGER REFERENCES users(id),
-    status INTEGER REFERENCES leave_status(id),
-    school_id INTEGER REFERENCES schools(school_id) NOT NULL
+    leave_status_code VARCHAR(20) REFERENCES leave_status(code),
+    school_id INTEGER REFERENCES schools(school_id) NOT NULL,
+    UNIQUE(school_id, academic_year_id, user_id, leave_policy_id, from_date, to_date)
 );
 
 CREATE TABLE class_teachers(
@@ -171,9 +172,9 @@ CREATE TABLE class_teachers(
 
 CREATE TABLE notice_status(
     id SERIAL PRIMARY KEY,
+    code VARCHAR(20) NOT NULL UNIQUE,
     name VARCHAR(50) NOT NULL,
-    alias VARCHAR(50) NOT NULL,
-    UNIQUE(name, alias)
+    alias VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE notices(
@@ -181,7 +182,7 @@ CREATE TABLE notices(
     author_id INTEGER REFERENCES users(id),
     title VARCHAR(100) NOT NULL,
     description VARCHAR(400) NOT NULL,
-    status INTEGER REFERENCES notice_status(id) DEFAULT NULL,
+    notice_status_code VARCHAR(20) REFERENCES notice_status(code) NOT NULL,
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_date TIMESTAMP DEFAULT NULL,
     reviewed_date TIMESTAMP DEFAULT NULL,
@@ -267,7 +268,7 @@ CREATE TABLE refunds(
 
 CREATE TABLE attendance_status(
     id SERIAL PRIMARY KEY,
-    code CHAR(2) UNIQUE,
+    code VARCHAR(20) UNIQUE,
     description VARCHAR(30)
 );
 
@@ -284,10 +285,11 @@ CREATE TABLE subjects(
 CREATE TABLE attendances(
     id SERIAL PRIMARY KEY,
     school_id INTEGER REFERENCES schools(school_id) NOT NULL,
+    user_leave_id INTEGER REFERENCES user_leaves(id) DEFAULT NULL,
     academic_year_id INTEGER REFERENCES academic_years(id) NOT NULL,
     user_id INTEGER REFERENCES users(id) NOT NULL,
-    attendance_status_code CHAR(2) REFERENCES attendance_status(code) NOT NULL,
-    attendance_date DATE DEFAULT CURRENT_DATE,
+    attendance_status_code VARCHAR(20) REFERENCES attendance_status(code) NOT NULL,
+    attendance_date DATE NOT NULL,
     remarks TEXT DEFAULT NULL,
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_date TIMESTAMP DEFAULT NULL,
@@ -375,7 +377,7 @@ CREATE TABLE invoices(
     initiator INTEGER REFERENCES users(id) NOT NULL,
     invoice_number VARCHAR(70) UNIQUE DEFAULT NULL,
     description VARCHAR(50) DEFAULT NULL,
-    status VARCHAR(20) REFERENCES invoice_status(code) DEFAULT 'DRAFT',
+    invoice_status_status VARCHAR(20) REFERENCES invoice_status(code) DEFAULT 'DRAFT',
     due_date DATE DEFAULT NULL,
     amount NUMERIC(10, 2) DEFAULT 0,
     discounted_amt NUMERIC(10, 2) DEFAULT 0,
