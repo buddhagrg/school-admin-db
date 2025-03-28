@@ -210,3 +210,41 @@ INSERT INTO roles(static_role_id, name, is_editable, school_id)
 VALUES
 (3, 'Teacher', false, -1),
 (4, 'Student', false, -1);
+
+INSERT INTO onboarding_status(code, name)
+VALUES
+('PENDING', 'Pending'),
+('IN_PROGRESS', 'In Progress'),
+('COMPLETED', 'Completed'),
+('ERROR', 'Error');
+
+INSERT INTO demo_requests_status(code, name)
+VALUES
+('PENDING', 'Pending'),
+('CONFIRMED', 'Confirmed'),
+('COMPLETED', 'Completed'),
+('CANCELLED', 'Cancelled'),
+('INTERESTED', 'Interested');
+
+INSERT INTO demo_requests_contact_person_roles(code, name)
+VALUES
+('PRINCIPAL', 'Principal'),
+('VICE_PRINCIPAL', 'Vice Principal'),
+('TEACHER', 'Teacher'),
+('IT_ADMINISTRATOR', 'IT Administrator'),
+('ADMINISTRATIVE_STAFF', 'Administrative Staff'),
+('SCHOOL_BOARD_MEMBER', 'School Board Member'),
+('OTHER', 'Other');
+
+INSERT INTO genders(code, name)
+VALUES
+('MALE', 'Male'),
+('FEMALE', 'Female'),
+('OTHER', 'Other');
+
+INSERT INTO marital_status(code, name)
+VALUES
+('SINGLE', 'Single'),
+('MARRIED', 'Married'),
+('DIVORCED', 'Divorced'),
+('WIDOWED', 'Widowed');
