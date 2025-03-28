@@ -14,6 +14,20 @@ CREATE TABLE schools (
     calendar_type CHAR(2) CHECK(calendar_type IN('BS', 'AD')) DEFAULT 'BS'
 );
 
+CREATE TABLE genders(
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(10) NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    UNIQUE(code, name)
+);
+
+CREATE TABLE marital_status(
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(30) NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    UNIQUE(code, name)
+);
+
 CREATE TABLE academic_levels(
     id SERIAL PRIMARY KEY,
     school_id INTEGER REFERENCES schools(school_id) NOT NULL,
@@ -98,8 +112,8 @@ CREATE TABLE users(
 
 CREATE TABLE user_profiles(
     user_id INTEGER PRIMARY KEY REFERENCES users(id),
-    gender VARCHAR(10) DEFAULT NULL,
-    marital_status VARCHAR(50) DEFAULT NULL,
+    gender VARCHAR(10) REFERENCES genders(code) DEFAULT NULL,
+    marital_status VARCHAR(50) REFERENCES marital_status(code) DEFAULT NULL,
     join_date DATE DEFAULT NULL,
     qualification VARCHAR(100) DEFAULT NULL,
     experience VARCHAR(100) DEFAULT NULL,
@@ -477,4 +491,54 @@ CREATE TABLE transactions(
     status VARCHAR(30) CHECK(status IN('PENDING', 'SUCCESS')) DEFAULT 'PENDING',
     remarks TEXT DEFAULT NULL,
     updated_date TIMESTAMP DEFAULT NULL
+);
+
+CREATE TABLE onboarding_status(
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(50) NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    UNIQUE(code, name)
+);
+
+CREATE TABLE onboarding(
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) NOT NULL,
+    current_step INTEGER DEFAULT 0,
+    completed_steps VARCHAR(50),
+    onboarding_status_code VARCHAR(50) REFERENCES onboarding_status(code) NOT NULL
+);
+
+CREATE TABLE demo_requests_contact_person_roles(
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(50) NOT NULL,
+    UNIQUE(code, name)
+);
+
+CREATE TABLE demo_requests_status(
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(50) NOT NULL UNIQUE,
+    name VARCHAR(50) NOT NULL,
+    UNIQUE(code, name) 
+);
+
+CREATE TABLE demo_requests(
+    id SERIAL PRIMARY KEY,
+    school_name VARCHAR(100) NOT NULL,
+    contact_person VARCHAR(100) NOT NULL,
+    contact_person_role_code VARCHAR(50) REFERENCES demo_requests_contact_person_roles(code) DEFAULT NULL,
+    email VARCHAR(50) NOT NULL UNIQUE,
+    phone VARCHAR(50) DEFAULT NULL,
+    school_size CHAR(2) CHECK(school_size IN('S', 'M', 'L', 'VL')) DEFAULT NULL,
+    additional_information TEXT DEFAULT NULL,
+    demo_requests_status_code VARCHAR(50) REFERENCES demo_requests_status(code) DEFAULT 'PENDING',
+    request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    demo_date_time TIMESTAMP DEFAULT NULL
+);
+
+CREATE TABLE contact_messages(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) DEFAULT NULL,
+    email VARCHAR(50) NOT NULL,
+    message TEXT NOT NULL
 );
