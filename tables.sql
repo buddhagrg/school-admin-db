@@ -215,7 +215,7 @@ CREATE TABLE notices(
     updated_date TIMESTAMP DEFAULT NULL,
     reviewed_date TIMESTAMP DEFAULT NULL,
     reviewer_id INTEGER REFERENCES users(id) DEFAULT NULL,
-    recipient_type VARCHAR(20) NOT NULL,
+    recipient_type CHAR(2) NOT NULL,
     recipient_role_id INTEGER DEFAULT NULL,
     recipient_first_field INT DEFAULT NULL,
     school_id INTEGER REFERENCES schools(school_id) NOT NULL
