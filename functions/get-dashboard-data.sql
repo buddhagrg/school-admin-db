@@ -1,6 +1,6 @@
-DROP FUNCTION IF EXISTS public.get_admin_dashboard_data(INTEGER, INTEGER);
+DROP FUNCTION IF EXISTS public.get_dashboard_data(INTEGER, INTEGER);
 
-CREATE OR REPLACE FUNCTION get_admin_dashboard_data(_school_id INTEGER, _user_id INTEGER)
+CREATE OR REPLACE FUNCTION get_dashboard_data(_school_id INTEGER, _user_id INTEGER)
 RETURNS JSONB
 LANGUAGE plpgsql
 AS $BODY$
