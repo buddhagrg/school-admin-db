@@ -1,17 +1,29 @@
 CREATE TABLE schools (
     id SERIAL PRIMARY KEY,
+    school_code VARCHAR(6) UNIQUE NOT NULL CHECK(school_code ~ '^[A-Z0-9]{3,6}$'),
     school_id INTEGER UNIQUE NOT NULL,
     name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    phone VARCHAR(30) DEFAULT NULL UNIQUE,
+    admin_id INTEGER NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    phone VARCHAR(30) NOT NULL,
+    pan VARCHAR(50) NOT NULL,
+    calendar_type CHAR(2) CHECK(calendar_type IN('BS', 'AD')) DEFAULT 'BS',
+    established_year INTEGER NOT NULL,
+    address VARCHAR(100) NOT NULL,
+    registration_number VARCHAR(100) NOT NULL,
+    motto VARCHAR(100) DEFAULT NULL,
+    website_url VARCHAR(100) DEFAULT NULL,
     logo_url VARCHAR(250) DEFAULT NULL,
-    last_modified_by INTEGER DEFAULT NULL,
-    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_date TIMESTAMP DEFAULT NULL,
-    pan VARCHAR(50) DEFAULT NULL,
     is_active BOOLEAN DEFAULT false,
-    is_email_verified BOOLEAN DEFAULT false,
-    calendar_type CHAR(2) CHECK(calendar_type IN('BS', 'AD')) DEFAULT 'BS'
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_modified_by INTEGER DEFAULT NULL,
+    updated_date TIMESTAMP DEFAULT NULL
+);
+
+CREATE TABLE static_school_user_roles(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(20) NOT NULL,
+    role VARCHAR(20) NOT NULL UNIQUE
 );
 
 CREATE TABLE genders(
@@ -81,19 +93,21 @@ CREATE TABLE leave_policies(
 
 CREATE TABLE roles(
     id SERIAL PRIMARY KEY,
-    static_role_id INTEGER NOT NULL,
+    static_role VARCHAR(20) NOT NULL,
     name VARCHAR(50) NOT NULL,
     is_active BOOLEAN DEFAULT true,
     is_editable BOOLEAN DEFAULT true,
     school_id INTEGER REFERENCES schools(school_id) NOT NULL,
-    UNIQUE(static_role_id, name, school_id)
+    UNIQUE(static_role, name, school_id)
 );
 
 CREATE TABLE users(
     id SERIAL PRIMARY KEY,
+    user_code VARCHAR(30) UNIQUE NOT NULL,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL,
     password VARCHAR(255) DEFAULT NULL,
+    password_last_changed_date TIMESTAMP DEFAULT NULL,
     last_login TIMESTAMP DEFAULT NULL,
     is_email_verified BOOLEAN DEFAULT false,
     has_system_access BOOLEAN DEFAULT false,
@@ -107,6 +121,7 @@ CREATE TABLE users(
         DEFAULT NULL,
     profile_url VARCHAR(250) DEFAULT NULL,
     school_id INTEGER REFERENCES schools(school_id) NOT NULL,
+    recent_device_info TEXT DEFAULT NULL,
     UNIQUE(email, school_id)
 );
 
@@ -123,19 +138,16 @@ CREATE TABLE user_profiles(
     section_id INTEGER REFERENCES sections(id) DEFAULT NULL,
     roll INTEGER DEFAULT NULL,
     department_id INTEGER REFERENCES departments(id) DEFAULT NULL,
-    father_name VARCHAR(50) DEFAULT NULL,
-    father_phone VARCHAR(20) DEFAULT NULL,
-    mother_name VARCHAR(50) DEFAULT NULL,
-    mother_phone VARCHAR(20) DEFAULT NULL,
     guardian_name VARCHAR(50) DEFAULT NULL,
     guardian_phone VARCHAR(20) DEFAULT NULL,
-    emergency_phone VARCHAR(20) DEFAULT NULL,
-    relation_of_guardian VARCHAR(30) DEFAULT NULL,
+    guardian_email VARCHAR(50) DEFAULT NULL,
+    guardian_relationship VARCHAR(50) DEFAULT NULL,
     current_address VARCHAR(50) DEFAULT NULL,
     permanent_address VARCHAR(50) DEFAULT NULL,
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_date TIMESTAMP DEFAULT NULL,
     school_id INTEGER REFERENCES schools(school_id) NOT NULL,
+    blood_group CHAR(2) DEFAULT NULL,
     UNIQUE(user_id, school_id)
 );
 
@@ -148,7 +160,7 @@ CREATE TABLE permissions(
     hierarchy_id INTEGER DEFAULT NULL,
     type VARCHAR(50) DEFAULT NULL,
     method VARCHAR(10) DEFAULT NULL,
-    direct_allowed_role_id VARCHAR(5) DEFAULT NULL,
+    direct_allowed_role VARCHAR(50) DEFAULT NULL,
     UNIQUE(path, method)
 );
 
@@ -166,10 +178,11 @@ CREATE TABLE user_leaves(
     from_date DATE NOT NULL,
     to_date DATE NOT NULL,
     note VARCHAR(100),
-    submitted_date TIMESTAMP DEFAULT NULL,
+    submitted_date TIMESTAMP DEFAULT CURRENT_DATE,
     updated_date TIMESTAMP DEFAULT NULL,
-    approved_date TIMESTAMP DEFAULT NULL,
-    approver_id INTEGER REFERENCES users(id),
+    reviewed_date TIMESTAMP DEFAULT NULL,
+    reviewer_id INTEGER REFERENCES users(id),
+    reviewer_note VARCHAR(100),
     leave_status_code VARCHAR(20) REFERENCES leave_status(code),
     school_id INTEGER REFERENCES schools(school_id) NOT NULL,
     UNIQUE(school_id, academic_year_id, user_id, leave_policy_id, from_date, to_date)
@@ -188,7 +201,7 @@ CREATE TABLE notice_status(
     id SERIAL PRIMARY KEY,
     code VARCHAR(20) NOT NULL UNIQUE,
     name VARCHAR(50) NOT NULL,
-    alias VARCHAR(50) NOT NULL
+    action VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE notices(
@@ -197,6 +210,7 @@ CREATE TABLE notices(
     title VARCHAR(100) NOT NULL,
     description VARCHAR(400) NOT NULL,
     notice_status_code VARCHAR(20) REFERENCES notice_status(code) NOT NULL,
+    published_date TIMESTAMP DEFAULT NULL,
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_date TIMESTAMP DEFAULT NULL,
     reviewed_date TIMESTAMP DEFAULT NULL,
@@ -283,7 +297,7 @@ CREATE TABLE refunds(
 CREATE TABLE attendance_status(
     id SERIAL PRIMARY KEY,
     code VARCHAR(20) UNIQUE,
-    description VARCHAR(30)
+    name VARCHAR(30)
 );
 
 CREATE TABLE subjects(
@@ -358,7 +372,7 @@ CREATE TABLE invoice_status(
     id SERIAL PRIMARY KEY,
     code VARCHAR(20) NOT NULL UNIQUE,
     name VARCHAR(30) NOT NULL,
-    description VARCHAR(70) DEFAULT NULL
+    action VARCHAR(70) DEFAULT NULL
 );
 
 CREATE TABLE fiscal_years(
@@ -518,20 +532,20 @@ CREATE TABLE demo_requests_contact_person_roles(
 CREATE TABLE demo_requests_status(
     id SERIAL PRIMARY KEY,
     code VARCHAR(50) NOT NULL UNIQUE,
-    name VARCHAR(50) NOT NULL,
+    name VARCHAR(150) NOT NULL,
     UNIQUE(code, name) 
 );
 
 CREATE TABLE demo_requests(
     id SERIAL PRIMARY KEY,
-    school_name VARCHAR(100) NOT NULL,
     contact_person VARCHAR(100) NOT NULL,
-    contact_person_role_code VARCHAR(50) REFERENCES demo_requests_contact_person_roles(code) DEFAULT NULL,
     email VARCHAR(50) NOT NULL UNIQUE,
+    school_name VARCHAR(100) NOT NULL,
+    contact_person_role_code VARCHAR(50) REFERENCES demo_requests_contact_person_roles(code) DEFAULT NULL,
     phone VARCHAR(50) DEFAULT NULL,
     school_size CHAR(2) CHECK(school_size IN('S', 'M', 'L', 'VL')) DEFAULT NULL,
     additional_information TEXT DEFAULT NULL,
-    demo_requests_status_code VARCHAR(50) REFERENCES demo_requests_status(code) DEFAULT 'PENDING',
+    demo_requests_status_code VARCHAR(50) REFERENCES demo_requests_status(code) NOT NULL,
     request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     demo_date_time TIMESTAMP DEFAULT NULL
 );
@@ -541,4 +555,17 @@ CREATE TABLE contact_messages(
     name VARCHAR(100) DEFAULT NULL,
     email VARCHAR(50) NOT NULL,
     message TEXT NOT NULL
+);
+
+CREATE TABLE demo_slots(
+    id SERIAL PRIMARY KEY,
+    sales_rep_id INTEGER REFERENCES users(id) NOT NULL,
+    available_at TIMESTAMP NOT NULL,
+    is_booked BOOLEAN DEFAULT false
+);
+
+CREATE TABLE school_ids(
+    id SERIAL PRIMARY KEY,
+    school_id INTEGER NOT NULL UNIQUE,
+    state VARCHAR(10) CHECK(state IN('FREE', 'RESERVED', 'USED')) DEFAULT 'FREE'
 );
