@@ -4,7 +4,7 @@ CREATE OR REPLACE FUNCTION get_notices(
     _role_id INTEGER DEFAULT NULL,
     _status VARCHAR(30) DEFAULT NULL,
     _from_date DATE DEFAULT NULL,
-    _to_date DATE DEFAULT NULL
+    _to_date DATE DEFAULT NULL,
     _filter_limit INTEGER DEFAULT NULL,
     _filter_approved_notice boolean DEFAULT FALSE
 )

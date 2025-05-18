@@ -152,7 +152,7 @@ VALUES
     ('PAID', 'Paid', 'Receive Payment'),
     ('PARTIALLY_PAID', 'Partial Payment Received', 'Receive Partial Payment'),
     ('REFUNDED', 'Payment refunded to the payer', 'Refund Invoice'),
-    ('DISPUTED', 'Dispute Raised', 'Raise Dispute', ),
+    ('DISPUTED', 'Dispute Raised', 'Raise Dispute'),
     ('CANCELLED', 'Invoice Cancelled', 'Cancel Invoice');
 
 INSERT INTO attendance_status (code, name) 
