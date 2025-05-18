@@ -9,7 +9,8 @@ CREATE OR REPLACE FUNCTION get_notices(
     _filter_approved_notice boolean DEFAULT FALSE
 )
 RETURNS TABLE (
-    id INTEGER, title VARCHAR(100),
+    id INTEGER,
+    title VARCHAR(100),
     description VARCHAR(400),
     "recipientType" CHAR(2),
     "recipientRoleId" INT,
@@ -20,7 +21,8 @@ RETURNS TABLE (
     "updatedDate" TIMESTAMP,
     author VARCHAR(100),
     "reviewerName" VARCHAR(100),
-    "reviewedDate" TIMESTAMP, status VARCHAR(100),
+    "reviewedDate" TIMESTAMP,
+    status VARCHAR(100),
     "statusId" VARCHAR(20),
     audience TEXT
 )
