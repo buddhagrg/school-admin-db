@@ -1,6 +1,6 @@
 CREATE TABLE schools (
     id SERIAL PRIMARY KEY,
-    school_code VARCHAR(6) UNIQUE NOT NULL CHECK(school_code ~ '^[A-Z0-9]{3,6}$'),
+    school_code VARCHAR(6) UNIQUE DEFAULT NULL CHECK(school_code IS NULL OR school_code ~ '^[A-Z0-9]{3,6}$'),
     school_id INTEGER UNIQUE NOT NULL,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL,
