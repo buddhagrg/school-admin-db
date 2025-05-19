@@ -10,6 +10,7 @@ DECLARE
     _user_name VARCHAR;
     _role_id INTEGER;
     _school_id INTEGER;
+    _user_code TEXT;
 BEGIN
     PERFORM public.generate_school_ids(true);
 
@@ -37,11 +38,11 @@ BEGIN
 
     IF _user_email IS NULL OR _school_name IS NULL OR _user_name IS NULL THEN
         RETURN QUERY
-        SELECT false, 'Missing required information', NULL::TEXT;
+        SELECT false, 'Missing required information: school name and user name/email', NULL::TEXT;
     END IF;
 
-    INSERT INTO schools(school_id, name, admin_email)
-    VALUES(_school_id, _school_name, _user_email);
+    INSERT INTO schools(school_id, name, email, school_code, is_active)
+    VALUES(_school_id, _school_name, _user_email, (SELECT LEFT(UPPER(_school_name), 4)), true);
 
     WITH inserted_users AS(
         INSERT INTO roles(name, static_role, is_editable, school_id)
@@ -53,8 +54,10 @@ BEGIN
     FROM inserted_users
     WHERE static_role = 'ADMIN';
 
-    INSERT INTO users(name, email, role_id, school_id, password, is_email_verified, has_system_access)
-    VALUES(_user_name, _user_email, _role_id, _school_id, _hashed_password, true, true)
+    _user_code := public.generate_unique_user_code(_school_id);
+
+    INSERT INTO users(school_id, user_code, name, email, role_id, password, is_email_verified, has_system_access)
+    VALUES(_school_id, _user_code, _user_name, _user_email, _role_id, _hashed_password, true, true)
     RETURNING id INTO _user_id;
 
     UPDATE schools
@@ -69,7 +72,7 @@ BEGIN
     WHERE school_id = _school_id;
 
     RETURN QUERY
-    SELECT true, 'Password setup success', NULL::TEXT;
+    SELECT true, 'Password setup successful. Please log in to continue.', NULL::TEXT;
 EXCEPTION
     WHEN OTHERS THEN
         RETURN QUERY
