@@ -11,6 +11,12 @@ DECLARE
     _sub_permission_id INT;
     _sub_permission_type VARCHAR;
 BEGIN
+    IF (SELECT static_role FROM roles WHERE school_id = _school_id AND id = _role_id) = 'ADMIN' THEN
+        RETURN QUERY
+        SELECT false, 'Permissions for admin role cannot be assigned because admin always has full access to all permissions.', NULL::TEXT;
+        RETURN;
+    END IF;
+
     DELETE FROM role_permissions
     WHERE school_id = _school_id AND role_id = _role_id;
 
@@ -43,6 +49,7 @@ BEGIN
 
     RETURN QUERY
     SELECT true, 'Role permissions saved successfully', NULL::TEXT;
+    RETURN;
 EXCEPTION
     WHEN OTHERS THEN
         RETURN QUERY
