@@ -36,7 +36,7 @@ BEGIN
     SELECT COUNT(*)
     INTO _student_count_total
     FROM users t1
-    JOIN user_profiles t2 ON t1.id = t2.user_id
+    JOIN user_profiles t2 ON t2.user_id = t1.id
     JOIN roles t3 ON t3.id = t1.role_id
     WHERE t3.static_role = 'STUDENT'
         AND t1.school_id = _school_id;
@@ -44,7 +44,7 @@ BEGIN
     SELECT COUNT(*)
     INTO _student_count_previous_year
     FROM users t1
-    JOIN user_profiles t2 ON t1.id = t2.user_id
+    JOIN user_profiles t2 ON t2.user_id = t1.id
     JOIN roles t3 ON t3.id = t1.role_id
     WHERE t3.static_role = 'STUDENT'
         AND t1.school_id = _school_id
@@ -61,7 +61,7 @@ BEGIN
     SELECT COUNT(*)
     INTO _teacher_count_total
     FROM users t1
-    JOIN user_profiles t2 ON t1.id = t2.user_id
+    JOIN user_profiles t2 ON t2.user_id = t1.id
     JOIN roles t3 ON t3.id = t1.role_id
     WHERE t3.static_role = 'TEACHER'
         AND t1.school_id = _school_id;
@@ -69,7 +69,7 @@ BEGIN
     SELECT COUNT(*)
     INTO _teacher_count_previous_year
     FROM users t1
-    JOIN user_profiles t2 ON t1.id = t2.user_id
+    JOIN user_profiles t2 ON t2.user_id = t1.id
     JOIN roles t3 ON t3.id = t1.role_id
     WHERE t3.static_role = 'TEACHER'
         AND t1.school_id = _school_id
@@ -86,7 +86,7 @@ BEGIN
     SELECT COUNT(*)
     INTO _parent_count_total
     FROM users t1
-    JOIN user_profiles t2 ON t1.id = t2.user_id
+    JOIN user_profiles t2 ON t2.user_id = t1.id
     JOIN roles t3 ON t3.id = t1.role_id
     WHERE t3.static_role = 'PARENT'
         AND t1.school_id = _school_id;
@@ -94,7 +94,7 @@ BEGIN
     SELECT COUNT(*)
     INTO _parent_count_previous_year
     FROM users t1
-    JOIN user_profiles t2 ON t1.id = t2.user_id
+    JOIN user_profiles t2 ON t2.user_id = t1.id
     JOIN roles t3 ON t3.id = t1.role_id
     WHERE t3.static_role = 'PARENT'
         AND t1.school_id = _school_id

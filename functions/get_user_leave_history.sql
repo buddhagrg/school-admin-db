@@ -39,10 +39,10 @@ BEGIN
         t1.reviewer_note,
         EXTRACT(DAY FROM age(t1.to_date + INTERVAL '1 day', t1.from_date))
     FROM user_leaves t1
-    JOIN leave_policies t2 ON t1.leave_policy_id = t2.id
+    JOIN leave_policies t2 ON t2.id = t1.leave_policy_id
     JOIN leave_status t3 ON t3.code = t1.leave_status_code
-    LEFT JOIN users t4 ON t1.reviewer_id = t4.id
-    JOIN users t5 ON t1.user_id = t5.id
+    LEFT JOIN users t4 ON t4.id = t1.reviewer_id
+    JOIN users t5 ON t5.id = t1.user_id
     WHERE t1.user_id = _user_id
         And t1.school_id = _school_id
     ORDER BY submitted_date DESC

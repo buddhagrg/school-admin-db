@@ -18,7 +18,7 @@ BEGIN
                 'Birthday',
                 t2.dob
             FROM users t1
-            JOIN user_profiles t2 ON t1.id = t2.user_id
+            JOIN user_profiles t2 ON t2.user_id = t1.id
             CROSS JOIN _month_dates t3
             WHERE t2.dob IS NOT NULL
                 AND t1.school_id = _school_id
@@ -38,7 +38,7 @@ BEGIN
                 END,
                 (COALESCE(t2.join_date, now())::DATE + INTERVAL '1 year')::DATE
             FROM users t1
-            JOIN user_profiles t2 ON t1.id = t2.user_id
+            JOIN user_profiles t2 ON t2.user_id = t1.id
             JOIN roles t3 ON t3.id = t1.role_id
             CROSS JOIN _month_dates t4
             WHERE t1.school_id = _school_id

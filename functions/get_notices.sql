@@ -97,9 +97,9 @@ BEGIN
             ELSE 'Everyone'
             END AS audience
         FROM notices t1
-        JOIN users t2 ON t1.author_id = t2.id
+        JOIN users t2 ON t2.id = t1.author_id
         JOIN notice_status t3 ON t3.code = t1.notice_status_code
-        LEFT JOIN users t4 ON t1.reviewer_id = t4.id
+        LEFT JOIN users t4 ON t4.id = t1.reviewer_id
         LEFT JOIN roles t6 ON t6.id = t1.recipient_role_id
         LEFT JOIN departments t7 ON t7.id = t1.recipient_first_field
         LEFT JOIN classes t8 ON t8.id = t1.recipient_first_field
@@ -136,7 +136,7 @@ BEGIN
                                                     OR EXISTS (
                                                         SELECT 1
                                                         FROM user_profiles u
-                                                        JOIN users t5 ON u.user_id = t5.id
+                                                        JOIN users t5 ON t5.id = u.user_id
                                                         WHERE u.school_id = t1.school_id
                                                             AND u.department_id = t1.recipient_first_field
                                                             AND t5.id = $3
@@ -152,7 +152,7 @@ BEGIN
                                                     OR EXISTS (
                                                         SELECT 1
                                                         FROM user_profiles u
-                                                        JOIN users t5 ON u.user_id = t5.id
+                                                        JOIN users t5 ON t5.id = u.user_id
                                                         WHERE u.school_id = t1.school_id
                                                             AND u.class_id = t1.recipient_first_field
                                                             AND t5.id = $3
