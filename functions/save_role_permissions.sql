@@ -49,7 +49,6 @@ BEGIN
 
     RETURN QUERY
     SELECT true, 'Role permissions saved successfully', NULL::TEXT;
-    RETURN;
 EXCEPTION
     WHEN OTHERS THEN
         RETURN QUERY

@@ -43,6 +43,7 @@ BEGIN
     IF _active_fiscal_year_id IS NULL OR _active_academic_year_id IS NULL THEN
         RETURN QUERY
         SELECT false, 'Denied. Either Fiscal year or Academic year is not setup properly.', NULL::TEXT;
+        RETURN;
     END IF;
 
     FOR _invoice IN (SELECT * FROM _invoices)

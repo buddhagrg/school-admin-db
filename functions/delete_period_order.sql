@@ -22,6 +22,7 @@ BEGIN
     ) THEN
         RETURN QUERY
         SELECT false, 'Period does not exist', NULL::TEXT;
+        RETURN;
     END IF;
 
     DELETE FROM academic_periods
@@ -39,6 +40,7 @@ BEGIN
     ) THEN
         RETURN QUERY
         SELECT true, 'Period deleted successfully', NULL::TEXT;
+        RETURN;
     END IF;
 
 

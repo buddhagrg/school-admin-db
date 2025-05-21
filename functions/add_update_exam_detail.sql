@@ -24,6 +24,7 @@ BEGIN
     IF NOT EXISTS(SELECT 1 FROM exams WHERE id = _exam_id) THEN
         RETURN QUERY
         SELECT false, 'Exam does not exist', NULL::TEXT;
+        RETURN;
     END IF;
 
     IF _operation_type = 'a' THEN
@@ -76,6 +77,7 @@ BEGIN
         
         RETURN QUERY
         SELECT true, 'Exam detail added successsfully', NULL::TEXT;
+        RETURN;
     ELSE
         _operation_type_description = 'update';
 

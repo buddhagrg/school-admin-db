@@ -37,6 +37,7 @@ BEGIN
     IF _active_fiscal_year_id IS NULL OR _active_academic_year_id IS NULL THEN
         RETURN QUERY
         SELECT false, 'Denied. Either Fiscal year or Academic year is not setup properly.', NULL::TEXT;
+        RETURN;
     END IF;
 
     IF NOT EXISTS(
@@ -46,6 +47,7 @@ BEGIN
     ) THEN
         RETURN QUERY
         SELECT false, 'Invoice does not exist', NULL::TEXT;
+        RETURN;
     END IF;
 
     SELECT COALESCE(outstanding_amt, 0), user_id, status
@@ -59,6 +61,7 @@ BEGIN
             false,
             'Payment Denied.  Invoice status should be either ''ISSUED'' or ''PARTIALLY_PAID'', but it is: %' || _invoice_status,
             NULL::TEXT;
+        RETURN;
     END IF;
 
     IF _payment_amount > _invoice_outstanding_amount THEN

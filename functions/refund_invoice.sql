@@ -26,6 +26,7 @@ BEGIN
     ) THEN
         RETURN QUERY
         SELECT false, 'Invoice does not exist', NULL:: TEXT;
+        RETURN;
     END IF;
 
     SELECT status, COALESCE(paid_amt, 0), user_id
@@ -39,6 +40,7 @@ BEGIN
             false,
             'Refund denied. Invoice must be ''PAID'' for refund process',
             NULL:: TEXT;
+        RETURN;
     END IF;
 
     IF _refund_amount > _invoice_paid_amount THEN
@@ -47,6 +49,7 @@ BEGIN
             false,
             'Refund denied. Refund amount can not be greater than paid invoice paid amount.',
             NULL::TEXT;
+        RETURN;
     END IF;
 
     UPDATE invoices

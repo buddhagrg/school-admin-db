@@ -33,11 +33,13 @@ BEGIN
     IF _active_academic_year_id IS NULL THEN
         RETURN QUERY
         SELECT false, 'Denied. Academic year is not setup properly.', NULL::TEXT;
+        RETURN;
     END IF;
 
     IF NOT EXISTS(SELECT 1 FROM exams WHERE id = _exam_id) THEN
         RETURN QUERY
         SELECT false, 'Exam does not exist', NULL::TEXT;
+        RETURN;
     END IF;
 
     IF _operation_type = 'a' THEN
@@ -109,6 +111,7 @@ BEGIN
         
         RETURN QUERY
         SELECT true, 'Mark detail added successsfully', NULL::TEXT;
+        RETURN;
     ELSE
         _operation_type_description = 'update';
 

@@ -62,11 +62,13 @@ BEGIN
     IF _school_id IS NULL THEN
         RETURN QUERY
         SELECT NULL::INTEGER, false, 'School Id may not be empty', NULL::TEXT;
+        RETURN;
     END IF;
 
     IF _role_id IS NULL THEN
         RETURN QUERY
         SELECT NULL::INTEGER, false, 'Role may not be empty', NULL::TEXT;
+        RETURN;
     END IF;
 
     SELECT static_role
@@ -77,6 +79,7 @@ BEGIN
     IF _static_role = 'STUDENT' THEN
         RETURN QUERY
         SELECT NULL::INTEGER, false, 'Student cannot be staff', NULL::TEXT;
+        RETURN;
     END IF;
 
     IF NOT EXISTS(SELECT 1 FROM users WHERE id = _user_id) THEN
@@ -84,6 +87,7 @@ BEGIN
         IF EXISTS(SELECT 1 FROM users WHERE email = _email) THEN
             RETURN QUERY
             SELECT NULL::INTEGER, false, 'Email already exists', NULL::TEXT;
+            RETURN;
         END IF;
 
         _user_code := public.generate_unique_user_code(_school_id);
@@ -99,6 +103,7 @@ BEGIN
 
         RETURN QUERY
         SELECT _user_id, true, 'Staff added successfully', NULL;
+        RETURN;
     END IF;
 
 

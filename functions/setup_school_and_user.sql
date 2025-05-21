@@ -24,11 +24,13 @@ BEGIN
     IF _school_id IS NULL THEN
         RETURN QUERY
         SELECT false, 'Could not find unique school id', NULL::TEXT;
+        RETURN;
     END IF;
 
     IF NOT EXISTS(SELECT id FROM demo_requests) THEN
         RETURN QUERY
         SELECT false, 'Demo ID not found', NULL::TEXT;
+        RETURN;
     END IF;
 
     SELECT email, school_name, contact_person
@@ -39,6 +41,7 @@ BEGIN
     IF _user_email IS NULL OR _school_name IS NULL OR _user_name IS NULL THEN
         RETURN QUERY
         SELECT false, 'Missing required information: school name and user name/email', NULL::TEXT;
+        RETURN;
     END IF;
 
     INSERT INTO schools(school_id, name, email, school_code, is_active)
