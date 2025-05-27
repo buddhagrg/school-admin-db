@@ -165,48 +165,38 @@ VALUES
 
 INSERT INTO roles(id, static_role, name, is_editable, school_id)
 VALUES
-(3, 'TEACHER', 'Teacher', false, 123456),
-(4, 'STUDENT', 'Student', false, 123456);
-SELECT setval('roles_id_seq', (SELECT MAX(id) FROM roles));
+    (3, 'TEACHER', 'Teacher', false, 123456),
+    (4, 'STUDENT', 'Student', false, 123456);
+    SELECT setval('roles_id_seq', (SELECT MAX(id) FROM roles));
 
-INSERT INTO onboarding_status(code, name)
-VALUES                                                                                     
-('PENDING', 'Pending'),
-('IN_PROGRESS', 'In Progress'),
-('COMPLETED', 'Completed'),
-('ERROR', 'Error');
-
-INSERT INTO demo_requests_status(code, name)
+INSERT INTO system_access_status(code, name)
 VALUES
-('DEMO_CONFIRMATION_REQUEST_SENT', 'Confirmation email for demo date and time sent to user'),
-('DEMO_CONFIRMED', 'Demo date and time confirmed'),
-('DEMO_COMPLETION_FOLLOWUP_EMAIL_SENT', 'Follow-up email sent after demo with invitation to system'),
-('DEMO_CANCELLED', 'Demo was Cancelled'),
-('PWD_SETUP_INVITE_SENT', 'User invited for account setup after verification'),
-('ACCOUNT_SETUP_REQUEST_RECEIVED', 'User requested direct access'),
-('ACCOUNT_SETUP_REQUEST_DENIED', ' Direct access request was canceled'),
-('ACCOUNT_VERIFICATION_EMAIL_SENT', 'Account verification email sent'),
-('ACCOUNT_ACTIVE', 'User completed registration and account is active');
+    ('ACCESS_REQUEST_RECEIVED', 'User requested access to the system'),
+    ('EMAIL_VERIFICATION_SENT',	'Verification email sent to the user'),
+    ('EMAIL_VERIFIED', 'User verified email via the link'),
+    ('PASSWORD_SETUP_LINK_SENT', 'Password setup link sent to user'),
+    ('ACCOUNT_ACTIVATED', 'User account is active and can log in');
 
-INSERT INTO demo_requests_contact_person_roles(code, name)
+
+INSERT INTO system_access_person_roles(code, name)
 VALUES
-('PRINCIPAL', 'Principal'),
-('VICE_PRINCIPAL', 'Vice Principal'),
-('TEACHER', 'Teacher'),
-('IT_ADMINISTRATOR', 'IT Administrator'),
-('ADMINISTRATIVE_STAFF', 'Administrative Staff'),
-('SCHOOL_BOARD_MEMBER', 'School Board Member'),
-('OTHER', 'Other');
+    ('PRINCIPAL', 'Principal'),
+    ('VICE_PRINCIPAL', 'Vice Principal'),
+    ('TEACHER', 'Teacher'),
+    ('IT_ADMINISTRATOR', 'IT Administrator'),
+    ('ADMINISTRATIVE_STAFF', 'Administrative Staff'),
+    ('SCHOOL_BOARD_MEMBER', 'School Board Member'),
+    ('OTHER', 'Other');
 
 INSERT INTO genders(code, name)
 VALUES
-('MALE', 'Male'),
-('FEMALE', 'Female'),
-('OTHER', 'Other');
+    ('MALE', 'Male'),
+    ('FEMALE', 'Female'),
+    ('OTHER', 'Other');
 
 INSERT INTO marital_status(code, name)
 VALUES
-('SINGLE', 'Single'),
-('MARRIED', 'Married'),
-('DIVORCED', 'Divorced'),
-('WIDOWED', 'Widowed');
+    ('SINGLE', 'Single'),
+    ('MARRIED', 'Married'),
+    ('DIVORCED', 'Divorced'),
+    ('WIDOWED', 'Widowed');
