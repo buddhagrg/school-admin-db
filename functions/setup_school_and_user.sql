@@ -1,5 +1,5 @@
 DROP FUNCTION IF EXISTS public.setup_school_and_user(INTEGER, VARCHAR);
-CREATE OR REPLACE FUNCTION setup_school_and_user(_demo_id INTEGER, _hashed_password VARCHAR)
+CREATE OR REPLACE FUNCTION setup_school_and_user(_system_access_request_id INTEGER, _hashed_password VARCHAR)
 RETURNS TABLE(status boolean, message TEXT, description TEXT)
 LANGUAGE 'plpgsql'
 AS $BODY$
@@ -27,16 +27,16 @@ BEGIN
         RETURN;
     END IF;
 
-    IF NOT EXISTS(SELECT id FROM demo_requests) THEN
+    IF NOT EXISTS(SELECT id FROM system_access_requests) THEN
         RETURN QUERY
-        SELECT false, 'Demo ID not found', NULL::TEXT;
+        SELECT false, 'Request not found', NULL::TEXT;
         RETURN;
     END IF;
 
     SELECT email, school_name, contact_person
     INTO _user_email, _school_name, _user_name
-    FROM demo_requests
-    WHERE id = _demo_id;
+    FROM system_access_requests
+    WHERE id = _system_access_request_id;
 
     IF _user_email IS NULL OR _school_name IS NULL OR _user_name IS NULL THEN
         RETURN QUERY
@@ -67,9 +67,9 @@ BEGIN
     SET admin_id = _user_id
     WHERE school_id = _school_id;
 
-    UPDATE demo_requests
-    SET demo_requests_status_code = 'ACCOUNT_ACTIVE'
-    WHERE id = _demo_id AND demo_requests_status_code = 'PWD_SETUP_INVITE_SENT';
+    UPDATE system_access_requests
+    SET system_access_status_code = 'ACCOUNT_ACTIVATED'
+    WHERE id = _system_access_request_id AND system_access_status_code = 'PASSWORD_SETUP_LINK_SENT';
 
     DELETE FROM school_ids
     WHERE school_id = _school_id;

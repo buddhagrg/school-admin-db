@@ -5,7 +5,7 @@ LANGUAGE 'plpgsql'
 AS $BODY$
 DECLARE
     _operation_type VARCHAR(10);
-    _user_id INTEGER;
+    _user_id INTEGER DEFAULT NULL::INT;
     _name TEXT;
     _role_id INTEGER;
     _static_role VARCHAR;
@@ -31,6 +31,7 @@ DECLARE
     _department_id INT;
 BEGIN
     _user_id := COALESCE((data ->>'userId')::INTEGER, NULL);
+    _operation_type := CASE WHEN _user_id IS NULL THEN 'add' ELSE 'update' END;
     _name := COALESCE(data->>'name', NULL);
     _role_id := COALESCE((data->>'roleId')::INTEGER, NULL);
     _gender := COALESCE(data->>'gender', NULL);
@@ -52,12 +53,6 @@ BEGIN
     _school_id := COALESCE((data->>'schoolId')::INTEGER, NULL);
     _blood_group := COALESCE((data->>'bloodGroup')::CHAR(2), NULL);
     _department_id := COALESCE((data->>'departmentId')::INT, NULL);
-
-    IF _user_id IS NULL THEN
-        _operation_type := 'add';
-    ELSE
-        _operation_type := 'update';
-    END IF;
 
     IF _school_id IS NULL THEN
         RETURN QUERY
@@ -143,32 +138,5 @@ EXCEPTION
     WHEN OTHERS THEN
         RETURN QUERY
         SELECT _user_id::INTEGER, false, 'Unable to ' || _operation_type || ' staff', SQLERRM;
-END;
-$BODY$;
-
-DROP FUNCTION IF EXISTS generate_unique_user_code(int);
-CREATE OR REPLACE FUNCTION generate_unique_user_code(_school_id INT)
-RETURNS TEXT
-LANGUAGE 'plpgsql'
-AS $BODY$
-DECLARE
-    _new_user_code TEXT;
-    _try_count INT := 0;
-    _school_code VARCHAR;
-BEGIN
-    SELECT school_code INTO _school_code
-    FROM schools WHERE school_id = _school_id;
-
-    FOR i IN 1..5 LOOP
-        _new_user_code := _school_code || '-' || TO_CHAR(NOW(), 'YYYY') || '-' ||
-                            LPAD(FLOOR(RANDOM()*10000)::TEXT, 4, '0');
-        
-        PERFORM 1 FROM users WHERE user_code = _new_user_code;
-        IF NOT FOUND THEN
-            RETURN _new_user_code;
-        END IF;
-    END LOOP;
-
-    RAISE EXCEPTION 'Could not generate unique user code after 5 attempts';
 END;
 $BODY$;
