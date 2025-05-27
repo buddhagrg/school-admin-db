@@ -507,47 +507,31 @@ CREATE TABLE transactions(
     updated_date TIMESTAMP DEFAULT NULL
 );
 
-CREATE TABLE onboarding_status(
-    id SERIAL PRIMARY KEY,
-    code VARCHAR(50) NOT NULL UNIQUE,
-    name TEXT NOT NULL,
-    UNIQUE(code, name)
-);
-
-CREATE TABLE onboarding(
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) NOT NULL,
-    current_step INTEGER DEFAULT 0,
-    completed_steps VARCHAR(50),
-    onboarding_status_code VARCHAR(50) REFERENCES onboarding_status(code) NOT NULL
-);
-
-CREATE TABLE demo_requests_contact_person_roles(
+CREATE TABLE system_access_person_roles(
     id SERIAL PRIMARY KEY,
     code VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(50) NOT NULL,
     UNIQUE(code, name)
 );
 
-CREATE TABLE demo_requests_status(
+CREATE TABLE system_access_status(
     id SERIAL PRIMARY KEY,
     code VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(150) NOT NULL,
     UNIQUE(code, name) 
 );
 
-CREATE TABLE demo_requests(
+CREATE TABLE system_access_requests(
     id SERIAL PRIMARY KEY,
     contact_person VARCHAR(100) NOT NULL,
     email VARCHAR(50) NOT NULL UNIQUE,
     school_name VARCHAR(100) NOT NULL,
-    contact_person_role_code VARCHAR(50) REFERENCES demo_requests_contact_person_roles(code) DEFAULT NULL,
+    system_access_person_code VARCHAR(50) REFERENCES system_access_person_roles(code) DEFAULT NULL,
     phone VARCHAR(50) DEFAULT NULL,
     school_size CHAR(2) CHECK(school_size IN('S', 'M', 'L', 'VL')) DEFAULT NULL,
     additional_information TEXT DEFAULT NULL,
-    demo_requests_status_code VARCHAR(50) REFERENCES demo_requests_status(code) NOT NULL,
-    request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    demo_date_time TIMESTAMP DEFAULT NULL
+    system_access_status_code VARCHAR(50) REFERENCES system_access_status(code) NOT NULL,
+    request_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE contact_messages(
@@ -557,15 +541,18 @@ CREATE TABLE contact_messages(
     message TEXT NOT NULL
 );
 
-CREATE TABLE demo_slots(
-    id SERIAL PRIMARY KEY,
-    sales_rep_id INTEGER REFERENCES users(id) NOT NULL,
-    available_at TIMESTAMP NOT NULL,
-    is_booked BOOLEAN DEFAULT false
-);
-
 CREATE TABLE school_ids(
     id SERIAL PRIMARY KEY,
     school_id INTEGER NOT NULL UNIQUE,
     state VARCHAR(10) CHECK(state IN('FREE', 'RESERVED', 'USED')) DEFAULT 'FREE'
+);
+
+CREATE TABLE verification_tokens(
+    id SERIAL PRIMARY KEY,
+    identifier VARCHAR(70),
+    purpose VARCHAR(50),
+    hash_key TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expiry_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(identifier, purpose, hash_key)
 );
